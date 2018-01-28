@@ -1,7 +1,8 @@
 
-import Server from './server'
+import { Server } from 'http'
 import HttpRequest from './request'
 import HttpResponse from './response'
+import { setImmediate } from 'timers'
 import { IncomingMessage, ServerResponse } from 'http'
 
 type Listener = (...args: any[]) => void
@@ -38,7 +39,8 @@ function _decorate (server: Server): Server {
       fn = _wrap(fn)
     }
 
-    return oldOn.call(this, event, fn)
+    oldOn.call(this, event, fn)
+    return this
   }
 
   return server
@@ -53,6 +55,6 @@ function _decorate (server: Server): Server {
  */
 function _wrap (fn: Listener): RequestListener {
   return (req: IncomingMessage, res: ServerResponse) => {
-    fn(new Request(req, res), new Response(req, res))
+    setImmediate(fn, new Request(req, res), new Response(req, res))
   }
 }
