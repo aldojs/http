@@ -1,24 +1,17 @@
 
-import { Server } from 'http'
-import HttpRequest from './request'
-import HttpResponse from './response'
+import Request from './request'
+import Response from './response'
 import { setImmediate } from 'timers'
-import { IncomingMessage, ServerResponse } from 'http'
+import { IncomingMessage, ServerResponse, Server } from 'http'
 
 type Listener = (...args: any[]) => void
 
-const EVENTS = ['request']
+export type RequestListener = (req: Request, res: Response) => void
 
-export const Request = HttpRequest
-
-export const Response = HttpResponse
-
-export type RequestListener = (req: IncomingMessage, res: ServerResponse) => void
-
-export function createServer (fn?: RequestListener): Server {
+export default function createServer (fn?: RequestListener): Server {
   var server = _decorate(new Server())
 
-  // attach request event listener if available
+  // attach request event listener
   fn && server.on('request', fn)
 
   return server
@@ -35,7 +28,7 @@ function _decorate (server: Server): Server {
   var oldOn = server.on
 
   server.on = function on (event: string, fn: Listener): Server {
-    if (EVENTS.includes(event)) {
+    if (event === 'request') {
       fn = _wrap(fn)
     }
 
@@ -50,10 +43,10 @@ function _decorate (server: Server): Server {
  * Wrap the event listener
  * 
  * @param {Listener} fn
- * @returns {RequestListener}
+ * @returns {Listener}
  * @private
  */
-function _wrap (fn: Listener): RequestListener {
+function _wrap (fn: Listener): Listener {
   return (req: IncomingMessage, res: ServerResponse) => {
     setImmediate(fn, new Request(req, res), new Response(req, res))
   }

@@ -2,7 +2,7 @@
   "name": "aldo-server",
   "version": "0.1.0",
   "description": "Advanced HTTP server for node.js",
-  "main": "lib/index.js",
+  "main": "index.js",
   "directories": {
     "test": "test"
   },
