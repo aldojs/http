@@ -1,5 +1,5 @@
 
-const { Request, Response } = require('../../lib')
+const { Request, Response } = require('../..')
 
 exports.createRequest = (req = { headers: {} }, res) => {
   return new Request(req, outgoingMessage(res))

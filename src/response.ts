@@ -91,15 +91,17 @@ export default class Response {
       }
 
       this.set('Content-Length', Buffer.byteLength(value))
+      return
     }
 
     // buffer
-    else if (Buffer.isBuffer(value)) {
+    if (Buffer.isBuffer(value)) {
       if (!this.has('Content-Type')) {
         this.set('Content-Type', 'application/octet-stream')
       }
 
       this.set('Content-Length', Buffer.byteLength(value))
+      return
     }
 
     // json
