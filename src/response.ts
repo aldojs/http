@@ -25,10 +25,10 @@ export default class Response {
     assert('number' === typeof code, 'The status code must be a number')
     assert(code >= 100 && code <= 999, 'Invalid status code')
 
-    if (this.body && statuses.empty[code]) this.body = null
-
-    this.message = statuses[code] || ''
     this.res.statusCode = code
+    this.message = statuses[code] || ''
+
+    if (this.body && statuses.empty[code]) this.body = null
   }
 
   get status (): number {
@@ -70,10 +70,12 @@ export default class Response {
 
     // empty body
     if (value == null) {
+      if (!statuses.empty[this.status]) this.status = 204
+
       this.remove('Transfer-Encoding')
       this.remove('Content-Length')
       this.remove('Content-type')
-      this.status = 204
+
       return
     }
 
@@ -87,22 +89,23 @@ export default class Response {
 
         this.set('Content-Type', `text/${type}; charset=utf-8`)
       }
+
+      this.set('Content-Length', Buffer.byteLength(value))
     }
 
     // buffer
     else if (Buffer.isBuffer(value)) {
-      if (!this.has('Content-Type'))
-        // binary
+      if (!this.has('Content-Type')) {
         this.set('Content-Type', 'application/octet-stream')
+      }
+
+      this.set('Content-Length', Buffer.byteLength(value))
     }
 
     // json
-    else if (typeof value === 'object') {
-      value = JSON.stringify(value)
-      this.set('Content-Type', 'application/json; charset=utf-8')
-    }
-
-    this.length = Buffer.byteLength(value)
+    this._body = value = JSON.stringify(value)
+    this.set('Content-Length', Buffer.byteLength(value))
+    this.set('Content-Type', 'application/json; charset=utf-8')
   }
 
   /**
@@ -187,7 +190,7 @@ export default class Response {
    */
   reset () {
     for (let header of this.res.getHeaderNames()) {
-      this.remove(header)
+      this.res.removeHeader(header)
     }
 
     return this
