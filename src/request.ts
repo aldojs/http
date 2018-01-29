@@ -1,10 +1,10 @@
 
 import * as http from 'http'
-import * as typeis from 'type-is'
-import * as mime from 'mime-types'
 import * as url from './support/url'
 import * as cookie from './support/cookie'
 import * as qs from './support/query-string'
+import * as ct from './support/content-type'
+import * as charset from './support/charset'
 import * as negotiator from './support/negotiator'
 
 export default class Request {
@@ -35,13 +35,11 @@ export default class Request {
   }
 
   get type (): string {
-    var ct = this.get('Content-Type') as string
-
-    return ct ? ct.split(';')[0].trim() : ''
+    return ct.extract(this.get('Content-Type') as string)
   }
 
   get charset (): string {
-    return mime.charset(this.get('Content-Type') as string) || ''
+    return charset.extract(this.get('Content-Type') as string)
   }
 
   get length (): number {
@@ -82,7 +80,7 @@ export default class Request {
   }
 
   is (...types: string[]): string | false {
-    return typeis.is(this.type, types)
+    return ct.is(this.type, types)
   }
 
   accept (...types: string[]): string | false | string[] {

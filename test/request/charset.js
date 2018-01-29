@@ -15,14 +15,14 @@ describe('request.charset', () => {
   })
 
   describe('with content-type present', () => {
-    it('should return default charset of the content type', () => {
+    it('should return "" if the charset is missing', () => {
       const request = createRequest({
         headers: {
           'content-type': 'text/plain'
         }
       })
 
-      assert(request.charset === 'UTF-8')
+      assert(request.charset === '')
     })
   })
 
@@ -30,17 +30,17 @@ describe('request.charset', () => {
     it('should return the charset', () => {
       const request = createRequest({
         headers: {
-          'content-type': 'text/plain; charset=utf-8'
+          'content-type': 'text/plain; charset=iso-8859-1'
         }
       })
 
-      assert.equal(request.charset, 'UTF-8')
+      assert.equal(request.charset, 'iso-8859-1')
     })
 
     it('should return "" if content-type is invalid', () => {
       const request = createRequest({
         headers: {
-          'content-type': 'foo/bar; charset=utf-8'
+          'content-type': 'application/json; application/text; charset=utf-8'
         }
       })
 

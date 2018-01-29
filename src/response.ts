@@ -1,10 +1,10 @@
 
 import * as http from 'http'
 import * as assert from 'assert'
-import * as typeis from 'type-is'
 import * as mime from 'mime-types'
 import * as statuses from 'statuses'
 import * as cookie from './support/cookie'
+import * as ct from './support/content-type'
 import * as negotiator from './support/negotiator'
 
 const HTML_ESCAPE_RE = /[<>"'&]/g
@@ -50,9 +50,7 @@ export default class Response {
   }
 
   get type (): string {
-    var ct = <string> this.get('Content-Type')
-
-    return ct ? ct.split(';')[0].trim() : ''
+    return ct.extract(<string> this.get('Content-Type'))
   }
 
   set length (value: number) {
@@ -134,7 +132,7 @@ export default class Response {
   }
 
   is (...types: string[]): string | false {
-    return typeis.is(this.type, types)
+    return ct.is(this.type, types)
   }
 
   get (header: string): string | number | string[] {
