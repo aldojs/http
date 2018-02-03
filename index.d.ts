@@ -54,6 +54,7 @@ export class Response {
     }): this;
     set(header: string, value: string | number | string[]): this;
     setCookie(name: string, value: string, options?: SerializeOptions): this;
+    clearCookie(name: string): this;
     append(header: string, value: string | string[]): this;
     has(header: string): boolean;
     remove(header: string): this;
