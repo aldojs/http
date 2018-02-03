@@ -5,8 +5,8 @@ const { createServer } = require('../lib')
 const server = createServer()
 
 // handler
-server.on('request', (req, res) => {
-  res.send('Hello world!')
+server.on('request', (request, response) => {
+  response.send('Hello world!')
 })
 
 // start

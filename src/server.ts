@@ -8,6 +8,12 @@ type Listener = (...args: any[]) => void
 
 export type RequestListener = (req: Request, res: Response) => void
 
+/**
+ * Create a decorated version of the native HTTP server
+ * 
+ * @param {RequestListener} fn
+ * @returns {Server}
+ */
 export default function createServer (fn?: RequestListener): Server {
   var server = _decorate(new Server())
 
@@ -18,7 +24,7 @@ export default function createServer (fn?: RequestListener): Server {
 }
 
 /**
- * Decorate native server implementation
+ * Decorate native server instance
  * 
  * @param {Server} server
  * @returns {Server}

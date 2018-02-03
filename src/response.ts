@@ -91,6 +91,7 @@ export default class Response {
       }
 
       this.set('Content-Length', Buffer.byteLength(value))
+
       return
     }
 
@@ -100,7 +101,8 @@ export default class Response {
         this.set('Content-Type', 'application/octet-stream')
       }
 
-      this.set('Content-Length', Buffer.byteLength(value))
+      this.set('Content-Length', value.length)
+
       return
     }
 
@@ -162,6 +164,10 @@ export default class Response {
   setCookie (name: string, value: string, options?: cookie.SerializeOptions) {
     this.append('Set-Cookie', cookie.serialize(name, value, options))
     return this
+  }
+
+  clearCookie (name: string) {
+    return this.setCookie(name, '', { expires: new Date(0) })
   }
 
   append (header: string, value: string | string[]) {
