@@ -1,5 +1,5 @@
 
-const { createServer } = require('../lib')
+const { createServer } = require('..')
 
 // server
 const server = createServer()
