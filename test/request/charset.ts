@@ -19,7 +19,7 @@ describe('request.charset', () => {
         }
       })
 
-      assert(request.charset === 'UTF-8')
+      assert.equal(request.charset, '')
     })
   })
 
@@ -31,7 +31,7 @@ describe('request.charset', () => {
         }
       })
 
-      assert.equal(request.charset, 'UTF-8')
+      assert.equal(request.charset, 'utf-8')
     })
 
     it('should return "" if content-type is invalid', () => {
