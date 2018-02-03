@@ -1,11 +1,8 @@
 {
   "name": "aldo-server",
   "version": "0.1.0",
-  "description": "Advanced HTTP server for node.js",
+  "description": "Enhanced Node.js HTTP server",
   "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
   "scripts": {
     "build": "tsc",
     "test": "mocha -r ts-node/register \"test/**/*.ts\""
