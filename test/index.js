@@ -1,3 +1,0 @@
-
-require('./request')
-require('./response')
