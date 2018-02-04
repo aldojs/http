@@ -9,7 +9,7 @@ describe('Test response status code manipulation', () => {
 
       response.status = 500
 
-      assert.equal(response.res.statusCode, 500)
+      assert.equal(response.stream.statusCode, 500)
     })
 
     it('should set the status message', () => {
@@ -17,7 +17,7 @@ describe('Test response status code manipulation', () => {
 
       response.status = 200
 
-      assert.equal(response.res.statusMessage, 'OK')
+      assert.equal(response.stream.statusMessage, 'OK')
     })
 
     describe('when empty responses code', () => {

@@ -5,7 +5,7 @@ import { createResponse } from '../support'
 describe('Test response status message manipulation', () => {
   describe('response.message', () => {
     it('should get the status message', () => {
-      let response = createResponse(null, {
+      let response = createResponse({
         statusMessage: 'OK'
       })
 
@@ -13,7 +13,7 @@ describe('Test response status message manipulation', () => {
     })
 
     it('should default to status code', () => {
-      let response = createResponse(null, {
+      let response = createResponse({
         statusCode: 200
       })
 
@@ -27,7 +27,7 @@ describe('Test response status message manipulation', () => {
 
       response.message = 'OK'
 
-      assert.equal(response.res.statusMessage, 'OK')
+      assert.equal(response.stream.statusMessage, 'OK')
     })
   })
 })

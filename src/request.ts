@@ -57,7 +57,7 @@ export default class Request {
   }
 
   get host (): string {
-    return this.headers.host as string
+    return this.headers.host as string || ''
   }
 
   get protocol (): string {

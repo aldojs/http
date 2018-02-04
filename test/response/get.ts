@@ -4,7 +4,7 @@ import { createResponse } from '../support'
 
 describe('response.get(name)', () => {
   it('should return the field value', () => {
-    let response = createResponse(null, {
+    let response = createResponse({
       headers: { 'foo': 'bar' }
     })
 

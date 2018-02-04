@@ -2,12 +2,12 @@
 import Request from '../../src/request'
 import Response from '../../src/response'
 
-export function createRequest (req?: any, res?: any) {
-  return new Request(_requestFrom(req), _responseFrom(res))
+export function createRequest (req?: any) {
+  return new Request(_requestFrom(req))
 }
 
-export function createResponse (req?: any, res?: any) {
-  return new Response(_requestFrom(req), _responseFrom(res))
+export function createResponse (res?: any) {
+  return new Response(_responseFrom(res))
 }
 
 /**

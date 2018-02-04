@@ -16,6 +16,6 @@ describe('request.length', () => {
   it('with no content-length present', () => {
     const request = createRequest()
 
-    assert.equal(request.length, undefined)
+    assert(isNaN(request.length))
   })
 })
