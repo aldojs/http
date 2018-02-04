@@ -54,6 +54,6 @@ function _decorate (server: Server): Server {
  */
 function _wrap (fn: Listener): Listener {
   return (req: IncomingMessage, res: ServerResponse) => {
-    setImmediate(fn, new Request(req, res), new Response(req, res))
+    setImmediate(fn, new Request(req), new Response(res))
   }
 }

@@ -10,54 +10,54 @@ import * as negotiator from './support/negotiator'
 export default class Request {
   body: any = null
 
-  constructor (public req: http.IncomingMessage, public res: http.ServerResponse) {
+  constructor (public stream: http.IncomingMessage) {
     // 
   }
 
   get headers (): http.IncomingHttpHeaders {
-    return this.req.headers
+    return this.stream.headers
   }
 
   get cookies (): { [x: string]: string | undefined } {
-    return cookie.parse(this.req)
+    return cookie.parse(this.stream)
   }
 
   get url (): string {
-    return url.parse(this.req).pathname || '/'
+    return url.parse(this.stream).pathname || '/'
   }
 
   get method (): string {
-    return this.req.method || 'GET'
+    return this.stream.method || 'GET'
   }
 
   get querystring (): string {
-    return <string> url.parse(this.req).query || ''
+    return <string> url.parse(this.stream).query || ''
   }
 
   get type (): string {
-    return ct.extract(this.get('Content-Type') as string)
+    return ct.extract(this.headers['content-type'] as string)
   }
 
   get charset (): string {
-    return charset.extract(this.get('Content-Type') as string)
+    return charset.extract(this.headers['content-type'] as string)
   }
 
   get length (): number {
-    var len = this.get('Content-Length') as string
+    var len = this.headers['content-length'] as string
 
-    return len ? Number(len) : undefined as any
+    return len ? Number(len) : NaN
   }
 
-  get query (): { [x: string]: any } {
-    return qs.parse(this.req)
+  get query (): { [key: string]: string | string[] | undefined } {
+    return qs.parse(this.stream)
   }
 
   get secure (): boolean {
-    return (this.req.socket as any).encrypted
+    return (this.stream.socket as any).encrypted
   }
 
   get host (): string {
-    return this.get('Host') as string
+    return this.headers.host as string
   }
 
   get protocol (): string {
@@ -76,7 +76,7 @@ export default class Request {
   }
 
   has (header: string): boolean {
-    return (header.toLowerCase() in this.headers)
+    return header.toLowerCase() in this.headers
   }
 
   is (...types: string[]): string | false {
@@ -84,18 +84,18 @@ export default class Request {
   }
 
   accept (...types: string[]): string | false | string[] {
-    return negotiator.accept(this.req, types)
+    return negotiator.accept(this.stream, types)
   }
 
   acceptCharset (...args: string[]): string | false | string[] {
-    return negotiator.acceptCharset(this.req, args)
+    return negotiator.acceptCharset(this.stream, args)
   }
 
   acceptEncoding (...args: string[]): string | false | string[] {
-    return negotiator.acceptEncoding(this.req, args)
+    return negotiator.acceptEncoding(this.stream, args)
   }
 
   acceptLanguage (...args: string[]): string | false | string[] {
-    return negotiator.acceptLanguage(this.req, args)
+    return negotiator.acceptLanguage(this.stream, args)
   }
 }
