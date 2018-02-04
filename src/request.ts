@@ -31,14 +31,14 @@ export default class Request {
   }
 
   get querystring (): string {
-    return <string> url.parse(this.stream).query || ''
+    return url.parse(this.stream).query as string || ''
   }
 
-  get type (): string {
+  get type (): string | undefined {
     return ct.extract(this.headers['content-type'] as string)
   }
 
-  get charset (): string {
+  get charset (): string | undefined {
     return charset.extract(this.headers['content-type'] as string)
   }
 
@@ -56,22 +56,30 @@ export default class Request {
     return (this.stream.socket as any).encrypted
   }
 
-  get host (): string {
-    return this.headers.host as string || ''
+  get host (): string | undefined {
+    return this.headers.host as string
   }
 
   get protocol (): string {
     return this.secure ? 'https' : 'http'
   }
 
-  get (header: string): string | string[] {
+  get origin (): string {
+    return `${this.protocol}://${this.host || ''}`
+  }
+
+  get ip (): string | undefined {
+    return this.stream.socket.remoteAddress
+  }
+
+  get (header: string): string | string[] | undefined {
     switch (header = header.toLowerCase()) {
       case 'referer':
       case 'referrer':
-        return this.headers.referrer || this.headers.referer || ''
+        return this.headers.referrer || this.headers.referer
 
       default:
-        return this.headers[header] || ''
+        return this.headers[header]
     }
   }
 

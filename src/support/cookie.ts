@@ -4,7 +4,7 @@ import * as cookie from 'cookie'
 export type ParseOptions = cookie.CookieParseOptions
 export type SerializeOptions = cookie.CookieSerializeOptions
 
-export function parse (req: any, options?: ParseOptions): { [x: string]: string } {
+export function parse (req: any, options?: ParseOptions): { [x: string]: string | undefined } {
   if (typeof req.headers.cookie === 'string') {
     req.headers.cookie = cookie.parse(req.headers.cookie, options)
   }

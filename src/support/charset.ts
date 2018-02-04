@@ -31,31 +31,27 @@ const QESC_REGEXP = /\\([\u000b\u0020-\u00ff])/g
  * 
  * @see https://github.com/jshttp/content-type
  */
-export function extract (header: string): string {
-  if (!header) return ''
+export function extract (header: string): string | undefined {
+  if (!header) return
 
   var [, ...params] = header.split(';')
 
   // missing parameters
-  if (!params.length) return ''
+  if (!params.length) return
 
   for (let param of params) {
     let match = PARAM_REGEXP.exec(param)
 
     // invalid paramter
-    if (!match) return ''
+    if (!match) return
     
     if (match[1].toLowerCase() !== 'charset') continue
 
     // return only the value of the "charset"
     let value = match[2]
 
-    if (value.startsWith('"')) {
-      return value.substr(1, value.length - 2).replace(QESC_REGEXP, '$1')
-    }
-    
-    return value
+    if (!value.startsWith('"')) return value
+      
+    return value.substr(1, value.length - 2).replace(QESC_REGEXP, '$1')
   }
-
-  return ''
 }

@@ -7,7 +7,7 @@ describe('Test response type manipulation', () => {
     it('should return an empty string when the Content-Type is undefined', () => {
       let resp = createResponse()
 
-      assert.equal(resp.type, '')
+      assert.equal(resp.type, undefined)
     })
 
     it('should return the Content-Type without the charset', () => {

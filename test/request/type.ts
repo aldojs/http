@@ -13,9 +13,9 @@ describe('request.type', () => {
     assert.equal(request.type, 'text/html')
   })
 
-  it('with no host present', () => {
+  it('with no type present', () => {
     const request = createRequest()
 
-    assert.equal(request.type, '')
+    assert.equal(request.type, undefined)
   })
 })

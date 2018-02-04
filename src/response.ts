@@ -40,14 +40,14 @@ export default class Response {
     return this.stream.statusMessage || statuses[this.status] || ''
   }
 
-  set type (value: string) {
-    var ct = mime.contentType(value)
+  set type (value: string | undefined) {
+    var ct = mime.contentType(value as string)
 
     if (ct) this.stream.setHeader('Content-Type', ct)
   }
 
-  get type (): string {
-    return ct.extract(<string> this.headers['content-type'])
+  get type (): string | undefined {
+    return ct.extract(this.headers['content-type'] as string)
   }
 
   set length (value: number) {
@@ -109,18 +109,12 @@ export default class Response {
     this.stream.setHeader('Content-Type', 'application/json; charset=utf-8')
   }
 
-  /**
-   * @type {Date}
-   */
   set lastModified (value: Date) {
     this.stream.setHeader('Last-Modified', value.toUTCString())
   }
 
-  /**
-   * @type {Date | undefined}
-   */
   get lastModified (): Date {
-    var date = <string> this.headers['last-modified']
+    var date = this.headers['last-modified'] as string
 
     return date ? new Date(date) : undefined as any
   }
@@ -132,7 +126,15 @@ export default class Response {
   }
 
   get etag (): string {
-    return <string> this.headers.etag
+    return this.headers.etag as string
+  }
+
+  set location (url: string) {
+    this.stream.setHeader('Location', url)
+  }
+
+  get location (): string {
+    return this.headers.location as string
   }
 
   is (...types: string[]): string | false {
