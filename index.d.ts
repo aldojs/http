@@ -55,13 +55,13 @@ export class Response {
     public send(content?: any): void;
     public has(header: string): boolean;
     public remove(header: string): this;
-    public clearCookie(name: string): this;
     public is(...types: string[]): string | false;
     public redirect(url?: string, status?: number): void;
-    public get(header: string): string | number | string[];
     public append(header: string, value: string | string[]): this;
+    public get(header: string): string | number | string[] | undefined;
     public set(header: string, value: string | number | string[]): this;
     public set(headers: { [field: string]: string | number | string[]; }): this;
+    public clearCookie(name: string, options?: cookie.CookieSerializeOptions): this;
     public setCookie(name: string, value: string, options?: cookie.CookieSerializeOptions): this;
 }
 
