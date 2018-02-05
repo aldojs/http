@@ -8,17 +8,38 @@ import * as ct from './support/content-type'
 import * as negotiator from './support/negotiator'
 
 export default class Response {
-  private _body: any
+  /**
+   * Response internal body
+   * 
+   * @type {Any}
+   */
+  private _body: any = null
 
-  constructor (public stream: http.ServerResponse) {
+  /**
+   * Construct a new response instance
+   * 
+   * @param {http.ServerResponse} stream
+   * @constructor
+   */
+  public constructor (public stream: http.ServerResponse) {
     // 
   }
 
-  get headers (): http.OutgoingHttpHeaders {
+  /**
+   * Response headers
+   * 
+   * @type {http.OutgoingHttpHeaders}
+   */
+  public get headers (): http.OutgoingHttpHeaders {
     return this.stream.getHeaders()
   }
 
-  set status (code: number) {
+  /**
+   * Set the response status code
+   * 
+   * @type {Number}
+   */
+  public set status (code: number) {
     assert('number' === typeof code, 'The status code must be a number')
     assert(code >= 100 && code <= 999, 'Invalid status code')
 
@@ -28,41 +49,96 @@ export default class Response {
     if (this.body && statuses.empty[code]) this.body = null
   }
 
-  get status (): number {
+  /**
+   * Get the response status code
+   * 
+   * @type {Number}
+   */
+  public get status (): number {
     return this.stream.statusCode
   }
 
-  set message (value: string) {
+  /**
+   * Set the response status message
+   * 
+   * @type {String}
+   */
+  public set message (value: string) {
     this.stream.statusMessage = value
   }
 
-  get message (): string {
+  /**
+   * Get the response status code
+   * 
+   * @type {Number}
+   */
+  public get message (): string {
     return this.stream.statusMessage || statuses[this.status] || ''
   }
 
-  set type (value: string | undefined) {
+  /**
+   * Set `Content-Type` response header.
+   * 
+   * Will add the the charset if not present.
+   * 
+   * Examples:
+   * 
+   *     response.type = '.html'
+   *     response.type = 'html'
+   *     response.type = 'json'
+   *     response.type = 'application/json'
+   *     response.type = 'png'
+   * 
+   * @type {String}
+   */
+  public set type (value: string) {
     var ct = mime.contentType(value as string)
 
     if (ct) this.stream.setHeader('Content-Type', ct)
   }
 
-  get type (): string | undefined {
-    return ct.extract(this.headers['content-type'] as string)
+  /**
+   * Return the response mime type void of the "charset" parameter, or undefined
+   * 
+   * @type {String | undefined}
+   */
+  public get type (): string {
+    return ct.extract(this.headers['content-type'] as string) as string
   }
 
-  set length (value: number) {
+  /**
+   * Set `Content-Length` reponse header
+   * 
+   * @type {Number}
+   */
+  public set length (value: number) {
     this.stream.setHeader('Content-Length', value)
   }
 
-  get length (): number {
+  /**
+   * Get the response content length or NaN otherwise.
+   * 
+   * @type {Number}
+   */
+  public get length (): number {
     return this.headers['content-length'] as number || NaN
   }
 
-  get body (): any {
-    return this._body || null
+  /**
+   * Get the response body
+   * 
+   * @type {Any}
+   */
+  public get body (): any {
+    return this._body
   }
 
-  set body (value: any) {
+  /**
+   * Set the response body
+   * 
+   * @type {String | Buffer | Object | null}
+   */
+  public set body (value: any) {
     this._body = value
 
     // empty body
@@ -84,7 +160,7 @@ export default class Response {
       if (!this.stream.hasHeader('Content-Type')) {
         let type = /^\s*</.test(value) ? 'html' : 'plain'
 
-        this.stream.setHeader('Content-Type', `text/${type}; charset=utf-8`)
+        this.stream.setHeader('Content-Type', `text/${type} charset=utf-8`)
       }
 
       this.stream.setHeader('Content-Length', Buffer.byteLength(value))
@@ -106,48 +182,116 @@ export default class Response {
     // json
     this._body = value = JSON.stringify(value)
     this.stream.setHeader('Content-Length', Buffer.byteLength(value))
-    this.stream.setHeader('Content-Type', 'application/json; charset=utf-8')
+    this.stream.setHeader('Content-Type', 'application/json charset=utf-8')
   }
 
-  set lastModified (value: Date) {
+  /**
+   * Set the `Last-Modified` response header
+   * 
+   * @type {Date}
+   */
+  public set lastModified (value: Date) {
     this.stream.setHeader('Last-Modified', value.toUTCString())
   }
 
-  get lastModified (): Date {
+  /**
+   * Get the `Last-Modified` date, or undefined if not present
+   * 
+   * @type {Date | undefined}
+   */
+  public get lastModified (): Date {
     var date = this.headers['last-modified'] as string
 
     return date ? new Date(date) : undefined as any
   }
 
-  set etag (value: string) {
+  /**
+   * Set the `ETag` of the response.
+   * 
+   * This will normalize the quotes if necessary.
+   * 
+   * Examples:
+   * 
+   *     response.etag = 'md5hashsum'
+   *     response.etag = '"md5hashsum"'
+   *     response.etag = 'W/"123456789"'
+   * 
+   * @type {String}
+   */
+  public set etag (value: string) {
     if (!/^(W\/)?"/.test(value)) value = `"${value}"`
 
     this.stream.setHeader('ETag', value)
   }
 
-  get etag (): string {
+  /**
+   * Get the `ETag` of the response.
+   * 
+   * @type {String}
+   */
+  public get etag (): string {
     return this.headers.etag as string
   }
 
-  set location (url: string) {
+  /**
+   * Set the `Location` response header
+   * 
+   * @type {String}
+   */
+  public set location (url: string) {
     this.stream.setHeader('Location', url)
   }
 
-  get location (): string {
+  /**
+   * Get the `Location` response header
+   * 
+   * @type {String}
+   */
+  public get location (): string {
     return this.headers.location as string
   }
 
-  is (...types: string[]): string | false {
+  /**
+   * Check if the incoming request contains the "Content-Type"
+   * header field, and it contains any of the give mime `type`s.
+   * 
+   * It returns the first matching type or false otherwise.
+   * 
+   * Pretty much the same as `Request.is()`
+   * 
+   * @param {String...} types
+   * @returns {String | false}
+   */
+  public is (...types: string[]): string | false {
     return ct.is(this.type, types)
   }
 
-  get (header: string): string | number | string[] {
-    return this.stream.getHeader(header) || ''
+  /**
+   * Get the response header if present, or undefined
+   * 
+   * @param {String} header
+   * @returns {String | number | Array<String> | undefined}
+   */
+  public get (header: string): string | number | string[] | undefined {
+    return this.stream.getHeader(header)
   }
 
-  set (headers: { [field: string]: string | number | string[] }): this
-  set (header: string, value: string | number | string[]): this
-  set (header: any, value?: any) {
+  /**
+   * Set the response header, or pass an object of header fields.
+   * 
+   * Examples:
+   * 
+   *    response.set('Foo', ['bar', 'baz'])
+   *    response.set('Accept', 'application/json')
+   *    response.set({ Accept: 'text/plain', 'X-API-Key': 'tobi' })
+   * 
+   * @param {Object | String} header
+   * @param {String | Array} [value]
+   * @returns {Response} for chaining
+   */
+  public set (headers: { [field: string]: string | number | string[] }): this
+  public set (header: string, value: string | number | string[]): this
+  public set (header: any, value?: any) {
     if (typeof header === 'object') {
       for (let name in header) {
         this.stream.setHeader(name, header[name])
@@ -160,15 +304,51 @@ export default class Response {
     return this
   }
 
-  setCookie (name: string, value: string, options?: cookie.SerializeOptions) {
+  /**
+   * Set cookie `name` to `value`, with the given `options`.
+   * 
+   * Examples:
+   * 
+   *    // "Remember Me" for 15 minutes
+   *    res.cookie('remember', '1', { expires: new Date(Date.now() + 900000), httpOnly: true })
+   * 
+   *    // same as above
+   *    res.cookie('remember', '1', { maxAge: 900000, httpOnly: true })
+   * 
+   * @param {String} name
+   * @param {String} value
+   * @param {Object} [options]
+   * @returns {Response} for chaining
+   */
+  public setCookie (name: string, value: string, options?: cookie.SerializeOptions) {
     return this.append('Set-Cookie', cookie.serialize(name, value, options))
   }
 
-  clearCookie (name: string) {
-    return this.setCookie(name, '', { expires: new Date(0) })
+  /**
+   * Unset the cookie `name`.
+   * 
+   * @param {String} name
+   * @param {Object} [options]
+   * @returns {Response} for chaining
+   */
+  public clearCookie (name: string, options?: cookie.SerializeOptions) {
+    return this.setCookie(name, '', { expires: new Date(0), ...options })
   }
 
-  append (header: string, value: string | string[]) {
+  /**
+   * Append additional header name
+   * 
+   * Examples:
+   * 
+   *    this.append('Link', ['<http://localhost/>', '<http://localhost:3000/>'])
+   *    this.append('Set-Cookie', 'foo=bar; Path=/; HttpOnly')
+   *    this.append('Warning', '199 Miscellaneous warning')
+   * 
+   * @param {String} header
+   * @param {String | Array} value
+   * @returns {Response} for chaining
+   */
+  public append (header: string, value: string | string[]) {
     if (this.stream.hasHeader(header)) {
       let oldValue = this.stream.getHeader(header)
 
@@ -183,19 +363,33 @@ export default class Response {
     return this
   }
 
-  has (header: string): boolean {
+  /**
+   * Check if response header is defined
+   * 
+   * @param {String} header
+   * @returns {Boolean}
+   */
+  public has (header: string): boolean {
     return this.stream.hasHeader(header)
   }
 
-  remove (header: string) {
+  /**
+   * Remove the response header
+   * 
+   * @param {String} header
+   * @returns {Response} for chaining
+   */
+  public remove (header: string) {
     this.stream.removeHeader(header)
     return this
   }
 
   /**
-   * Reset response headers
+   * Reset all response headers
+   * 
+   * @returns {Response} for chaining
    */
-  reset () {
+  public reset () {
     for (let header of this.stream.getHeaderNames()) {
       this.stream.removeHeader(header)
     }
@@ -203,7 +397,12 @@ export default class Response {
     return this
   }
 
-  send (content?: any) {
+  /**
+   * Send and end the response stream
+   * 
+   * @param {String | Buffer | Object} [content]
+   */
+  public send (content?: any) {
     // already sent
     if (this.stream.finished) return
 
@@ -224,7 +423,7 @@ export default class Response {
     // status body
     if (body == null) {
       res.setHeader('Content-Length', Buffer.byteLength(body = this.message))
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+      res.setHeader('Content-Type', 'text/plain charset=utf-8')
     }
 
     // finish
