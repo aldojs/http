@@ -1,79 +1,70 @@
 
 /// <reference types="node" />
+/// <reference types="cookie" />
 
 import * as http from 'http';
+import * as cookie from 'cookie';
 
 export class Request {
-    req: http.IncomingMessage;
-    res: http.ServerResponse;
-    body: any;
-    constructor(req: http.IncomingMessage, res: http.ServerResponse);
-    readonly headers: http.IncomingHttpHeaders;
-    readonly cookies: {
-        [x: string]: string | undefined;
-    };
-    readonly url: string;
-    readonly method: string;
-    readonly querystring: string;
-    readonly type: string;
-    readonly charset: string;
-    readonly length: number;
-    readonly query: {
-        [x: string]: any;
-    };
-    readonly secure: boolean;
-    readonly host: string;
-    readonly protocol: string;
-    get(header: string): string | string[];
-    has(header: string): boolean;
-    is(...types: string[]): string | false;
-    accept(...types: string[]): string | false | string[];
-    acceptCharset(...args: string[]): string | false | string[];
-    acceptEncoding(...args: string[]): string | false | string[];
-    acceptLanguage(...args: string[]): string | false | string[];
+    public constructor(req: http.IncomingMessage);
+
+    // properties
+    public body: any;
+    public readonly url: string;
+    public readonly method: string;
+    public readonly origin: string;
+    public readonly length: number;
+    public readonly secure: boolean;
+    public readonly protocol: string;
+    public readonly querystring: string;
+    public stream: http.IncomingMessage;
+    public readonly ip: string | undefined;
+    public readonly host: string | undefined;
+    public readonly type: string | undefined;
+    public readonly charset: string | undefined;
+    public readonly headers: http.IncomingHttpHeaders;
+    public readonly cookies: { [key: string]: string | undefined; };
+    public readonly query:{ [key: string]: string | string[] | undefined; };
+
+    // methods 
+    public has(header: string): boolean;
+    public get(header: string): string | string[];
+    public is(...types: string[]): string | false;
+    public accept(...types: string[]): string | false | string[];
+    public acceptCharset(...args: string[]): string | false | string[];
+    public acceptEncoding(...args: string[]): string | false | string[];
+    public acceptLanguage(...args: string[]): string | false | string[];
 }
 
 export class Response {
-    req: http.IncomingMessage;
-    res: http.ServerResponse;
-    private _body;
-    private _sent;
-    constructor(req: http.IncomingMessage, res: http.ServerResponse);
-    readonly headers: http.OutgoingHttpHeaders;
-    status: number;
-    message: string;
-    type: string;
-    length: number;
-    body: any;
-    lastModified: Date;
-    etag: string;
-    is(...types: string[]): string | false;
-    get(header: string): string | number | string[];
-    set(headers: {
-        [field: string]: string | number | string[];
-    }): this;
-    set(header: string, value: string | number | string[]): this;
-    setCookie(name: string, value: string, options?: SerializeOptions): this;
-    clearCookie(name: string): this;
-    append(header: string, value: string | string[]): this;
-    has(header: string): boolean;
-    remove(header: string): this;
-    reset(): this;
-    redirect(url?: string, status?: number): void;
-    send(content?: any): void;
+    public constructor(res: http.ServerResponse);
+
+    // properties
+    public body: any;
+    public type: string;
+    public etag: string;
+    public length: number;
+    public status: number;
+    public message: string;
+    public lastModified: Date;
+    public stream: http.ServerResponse;
+    public readonly headers: http.OutgoingHttpHeaders;
+
+    // methods
+    public reset(): this;
+    public send(content?: any): void;
+    public has(header: string): boolean;
+    public remove(header: string): this;
+    public clearCookie(name: string): this;
+    public is(...types: string[]): string | false;
+    public redirect(url?: string, status?: number): void;
+    public get(header: string): string | number | string[];
+    public append(header: string, value: string | string[]): this;
+    public set(header: string, value: string | number | string[]): this;
+    public set(headers: { [field: string]: string | number | string[]; }): this;
+    public setCookie(name: string, value: string, options?: cookie.CookieSerializeOptions): this;
 }
 
 export function createServer(fn?: RequestListener): http.Server;
 
-export type RequestListener = (req: Request, res: Response) => void;
-
-export interface SerializeOptions {
-    domain?: string;
-    encode?(val: string): string;
-    expires?: Date;
-    httpOnly?: boolean;
-    maxAge?: number;
-    path?: string;
-    sameSite?: boolean | 'lax' | 'strict';
-    secure?: boolean;
-}
+export type RequestListener = (request: Request, response: Response) => void;
