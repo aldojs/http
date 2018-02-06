@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Enhanced Node.js HTTP server",
   "main": "index.js",
+  "engines": {
+    "node": ">= 8.2.1"
+},
   "scripts": {
     "build": "tsc",
     "test": "mocha -r ts-node/register \"test/**/*.ts\""
