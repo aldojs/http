@@ -191,9 +191,9 @@ export default class Request {
    * 
    * The `Referrer` header field is special-cased,
    * both `Referrer` and `Referer` are interchangeable.
-   *
+   * 
    * Examples:
-   *
+   * 
    *     this.has('Content-Type')
    *     // => true
    *
@@ -217,7 +217,7 @@ export default class Request {
    * It returns the first matching type or false otherwise
    * 
    * Examples:
-   *
+   * 
    *     // With Content-Type: text/html charset=utf-8
    *     this.is('html') // => 'html'
    *     this.is('text/html') // => 'text/html'
@@ -249,9 +249,9 @@ export default class Request {
    * such as "application/json", the extension name
    * such as "json" or an array `["json", "html", "text/plain"]`. When a list
    * or array is given the _best_ match, if any is returned.
-   *
+   * 
    * Examples:
-   *
+   * 
    *     // with Accept: text/html
    *     this.accept('html')
    *     // => "html"
@@ -290,9 +290,9 @@ export default class Request {
    * Return accepted charsets or best fit based on `charsets`.
    * 
    * If no argument supplied, it returns all accepted charsets sorted by "qvalue"
-   *
+   * 
    * Examples:
-   *
+   * 
    *     // with Accept-Charset: utf-8, iso-8859-1q=0.2, utf-7q=0.5
    *     this.acceptCharset()
    *     // => ['utf-8', 'utf-7', 'iso-8859-1']
@@ -312,9 +312,9 @@ export default class Request {
    * Returns accepted encodings or best fit based on `encodings`.
    * 
    * If no argument supplied, it returns all accepted encodings sorted by "qvalue"
-   *
+   * 
    * Examples:
-   *
+   * 
    *     // with Accept-Encoding: gzip, deflate
    *     this.acceptEncoding()
    *     // => ['gzip', 'deflate']
@@ -334,15 +334,15 @@ export default class Request {
    * Return accepted languages or best fit based on `langs`.
    * 
    * If no argument supplied, it returns all accepted languages sorted by "qvalue"
-   *
+   * 
    * Examples:
-   *
+   * 
    *     // with Accept-Language: enq=0.8, es, pt
    *     this.acceptLanguage()
    *     // => ['es', 'pt', 'en']
-   *     this.acceptLanguage('br', 'gzip')
-   *     // => "gzip"
-   *     this.acceptLanguage('br')
+   *     this.acceptLanguage('en', 'pt')
+   *     // => "en"
+   *     this.acceptLanguage('fr')
    *     // => false
    * 
    * @param {String...} args

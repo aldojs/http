@@ -5,7 +5,6 @@ import * as mime from 'mime-types'
 import * as statuses from 'statuses'
 import * as cookie from './support/cookie'
 import * as ct from './support/content-type'
-import * as negotiator from './support/negotiator'
 
 export default class Response {
   /**
