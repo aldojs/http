@@ -1,3 +1,3 @@
 
 # Aldo-server
-Enhanced HTTP createServer module for Node.js
+Enhanced Node.js HTTP server

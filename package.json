@@ -1,7 +1,7 @@
 {
-  "name": "@aldo/http",
+  "name": "aldo-server",
   "version": "0.1.0",
-  "description": "Enhanced HTTP createServer module for Node.js",
+  "description": "Enhanced Node.js HTTP server",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
@@ -9,20 +9,19 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aldojs/http.git"
+    "url": "git+https://github.com/aldojs/server.git"
   },
   "keywords": [
     "http",
     "request",
-    "response",
-    "create-server"
+    "response"
   ],
   "author": "absolux",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/aldojs/http/issues"
+    "url": "https://github.com/aldojs/server/issues"
   },
-  "homepage": "https://github.com/aldojs/http#readme",
+  "homepage": "https://github.com/aldojs/server#readme",
   "devDependencies": {
     "@types/cookie": "^0.3.1",
     "@types/mime-types": "^2.1.0",
