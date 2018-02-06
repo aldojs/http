@@ -4,22 +4,22 @@ import { createRequest } from '../support'
 
 describe('request.charset', () => {
   describe('with no content-type present', () => {
-    it('should return ""', () => {
+    it('should return "undefined"', () => {
       const request = createRequest()
 
-      assert(request.charset === '')
+      assert.equal(request.charset, undefined)
     })
   })
 
   describe('with content-type present', () => {
-    it('should return default charset of the content type', () => {
+    it('should return "undefined" of the content type', () => {
       const request = createRequest({
         headers: {
           'content-type': 'text/plain'
         }
       })
 
-      assert.equal(request.charset, '')
+      assert.equal(request.charset, undefined)
     })
   })
 
@@ -34,14 +34,14 @@ describe('request.charset', () => {
       assert.equal(request.charset, 'utf-8')
     })
 
-    it('should return "" if content-type is invalid', () => {
+    it('should return "undefined" if content-type is invalid', () => {
       const request = createRequest({
         headers: {
           'content-type': 'foo/bar; charset=utf-8'
         }
       })
 
-      assert.equal(request.charset, '')
+      assert.equal(request.charset, undefined)
     })
   })
 })

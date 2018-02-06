@@ -6,7 +6,7 @@ describe('request.headers', () => {
   it('should return the request header object', () => {
     const request = createRequest()
 
-    assert.deepEqual(request.headers, request.req.headers)
+    assert.deepEqual(request.headers, request.stream.headers)
   })
 
   it('should set the request header object', () => {
@@ -16,6 +16,6 @@ describe('request.headers', () => {
       }
     })
 
-    assert.deepEqual(request.headers, request.req.headers)
+    assert.deepEqual(request.headers, request.stream.headers)
   })
 })

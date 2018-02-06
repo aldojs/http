@@ -14,10 +14,10 @@ describe('request.host', () => {
   })
 
   describe('with no host present', () => {
-    it('should return ""', () => {
+    it('should return "undefined"', () => {
       const request = createRequest()
 
-      assert.equal(request.host, '')
+      assert.equal(request.host, undefined)
     })
   })
 

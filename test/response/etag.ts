@@ -29,6 +29,14 @@ describe('response.etag=', () => {
 })
 
 describe('response.etag', () => {
+  describe('with no etag present', () => {
+    it('should return "undefined"', () => {
+      const response = createResponse()
+
+      assert.equal(response.etag, undefined)
+    })
+  })
+
   it('should return etag', () => {
     const response = createResponse()
 

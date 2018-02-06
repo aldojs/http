@@ -28,7 +28,7 @@ describe('response.length', () => {
         assert.equal(response.length, 17)
 
         response.body = null
-        assert.equal(response.length, undefined)
+        assert(isNaN(response.length))
       })
     })
 
@@ -36,7 +36,7 @@ describe('response.length', () => {
       it('should return undefined', () => {
         const response = createResponse()
 
-        assert.equal(response.length, undefined)
+        assert(isNaN(response.length))
       })
     })
   })

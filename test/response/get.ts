@@ -4,7 +4,7 @@ import { createResponse } from '../support'
 
 describe('response.get(name)', () => {
   it('should return the field value', () => {
-    let response = createResponse(null, {
+    let response = createResponse({
       headers: { 'foo': 'bar' }
     })
 
@@ -14,6 +14,6 @@ describe('response.get(name)', () => {
   it('should return an empty string for undefined fields', () => {
     let response = createResponse()
 
-    assert.equal(response.get('x-foo'), '')
+    assert.equal(response.get('x-foo'), undefined)
   })
 })
