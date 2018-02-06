@@ -159,7 +159,7 @@ export default class Response {
       if (!this.stream.hasHeader('Content-Type')) {
         let type = /^\s*</.test(value) ? 'html' : 'plain'
 
-        this.stream.setHeader('Content-Type', `text/${type} charset=utf-8`)
+        this.stream.setHeader('Content-Type', `text/${type}; charset=utf-8`)
       }
 
       this.stream.setHeader('Content-Length', Buffer.byteLength(value))
@@ -181,7 +181,7 @@ export default class Response {
     // json
     this._body = value = JSON.stringify(value)
     this.stream.setHeader('Content-Length', Buffer.byteLength(value))
-    this.stream.setHeader('Content-Type', 'application/json charset=utf-8')
+    this.stream.setHeader('Content-Type', 'application/json; charset=utf-8')
   }
 
   /**
@@ -422,7 +422,7 @@ export default class Response {
     // status body
     if (body == null) {
       res.setHeader('Content-Length', Buffer.byteLength(body = this.message))
-      res.setHeader('Content-Type', 'text/plain charset=utf-8')
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
     }
 
     // finish

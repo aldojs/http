@@ -4,9 +4,11 @@ import { createResponse } from '../support'
 
 describe('response.reset()', () => {
   it('should remove all fields', () => {
-    let response = createResponse(null, {
+    let response = createResponse({
       headers: { 'foo': 1, 'bar': 2 }
     })
+    
+    assert.deepEqual(response.headers, { 'foo': 1, 'bar': 2 })
 
     response.reset()
 
