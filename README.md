@@ -1,3 +1,3 @@
 
-# Aldo-server
-Enhanced Node.js HTTP server
+# @aldo/http
+Enhanced HTTP createServer module for Node.js
