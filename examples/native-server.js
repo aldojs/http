@@ -5,12 +5,12 @@ const { createServer } = require('http')
 const server = createServer()
 
 // handler
-server.on('request', (req, res) => {
+server.on('request', (request, response) => {
   let body = 'Hello world!'
 
-  res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-  res.setHeader('Content-Length', Buffer.byteLength(body))
-  res.end(body)
+  response.setHeader('Content-Type', 'text/plain; charset=utf-8')
+  response.setHeader('Content-Length', Buffer.byteLength(body))
+  response.end(body)
 })
 
 // start

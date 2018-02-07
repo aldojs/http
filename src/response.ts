@@ -238,7 +238,7 @@ export default class Response {
    * @type {String}
    */
   public set location (url: string) {
-    this.stream.setHeader('Location', url)
+    this.stream.setHeader('Location', encodeURI(url))
   }
 
   /**
