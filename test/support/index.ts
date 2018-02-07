@@ -1,6 +1,5 @@
 
-import Request from '../../src/request'
-import Response from '../../src/response'
+import { Request, Response } from '../../src'
 
 export function createRequest (req?: any) {
   return new Request(_requestFrom(req))
