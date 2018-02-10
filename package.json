@@ -3,8 +3,12 @@
   "version": "0.1.1",
   "description": "Enhanced HTTP createServer module for Node.js",
   "main": "lib/index.js",
+  "engines" : {
+    "node" : ">=8.9"
+  },
   "scripts": {
     "build": "tsc",
+    "prepublish": "npm run build",
     "test": "mocha -r ts-node/register \"test/**/*.ts\""
   },
   "repository": {
