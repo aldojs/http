@@ -1,5 +1,5 @@
 
-**`Aldo-http`** is an enhanced HTTP createServer module for Node.js.
+An enhanced HTTP createServer module for Node.js.
 It provides a decorated version of `IncomingMessage` and `ServerResponse` objects.
 The API is mostly similar to `Koa`
 
@@ -22,7 +22,7 @@ const server = createServer((request, response) => {
 server.listen(3000)
 ```
 
-The above code is similar than the following
+The above code is similar to the following
 
 ```js
 const { createServer } = require('http')
