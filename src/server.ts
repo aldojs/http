@@ -1,59 +1,32 @@
 
+import * as http from 'http'
 import Request from './request'
 import Response from './response'
 import { setImmediate } from 'timers'
-import { IncomingMessage, ServerResponse, Server } from 'http'
 
 type Listener = (...args: any[]) => void
 
-export type RequestListener = (req: Request, res: Response) => void
-
-/**
- * Create a decorated version of the native HTTP server
- * 
- * @param {RequestListener} fn
- * @returns {Server}
- */
-export default function createServer (fn?: RequestListener): Server {
-  var server = _decorate(new Server())
-
-  // attach request event listener
-  fn && server.on('request', fn)
-
-  return server
-}
-
-/**
- * Decorate native server instance
- * 
- * @param {Server} server
- * @returns {Server}
- * @private
- */
-function _decorate (server: Server): Server {
-  var oldOn = server.on
-
-  server.on = function on (event: string, fn: Listener): Server {
-    if (event === 'request') {
-      fn = _wrap(fn)
-    }
-
-    oldOn.call(this, event, fn)
-    return this
+export default class Server extends http.Server {
+  on (event: string, listener: Listener): this {
+    return this.addListener(event, listener)
   }
 
-  return server
+  addListener (event: string, listener: Listener): this {
+    return super.addListener(event, _wrap(event, listener))
+  }
 }
 
 /**
  * Wrap the event listener
  * 
- * @param {Listener} fn
- * @returns {Listener}
+ * @param {Function} fn
+ * @returns {Function}
  * @private
  */
-function _wrap (fn: Listener): Listener {
-  return (req: IncomingMessage, res: ServerResponse) => {
+function _wrap (event: string, fn: Listener): Listener {
+  if (event !== 'request') return fn
+
+  return (req: http.IncomingMessage, res: http.ServerResponse) => {
     setImmediate(fn, new Request(req), new Response(res))
   }
 }

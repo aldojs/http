@@ -1,6 +1,20 @@
 
-export { default as Request } from './request'
+import Server from './server'
+import Request from './request'
+import Response from './response'
 
-export { default as Response } from './response'
+/**
+ * Create HTTP Server
+ * 
+ * @param {Function} fn
+ * @returns {Server}
+ */
+export function createServer (fn?: (req: Request, res: Response) => void) {
+  var server = new Server()
 
-export { default as createServer } from './server'
+  fn && server.on('request', fn)
+
+  return server
+}
+
+export { Request, Response }
