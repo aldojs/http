@@ -3,6 +3,9 @@
 
 import * as http from 'http';
 
+/**
+ * HTTP request decorator
+ */
 export class Request {
     /**
      * Native http request
@@ -280,6 +283,9 @@ export class Request {
     acceptLanguage(...args: string[]): string | false | string[];
 }
 
+/**
+ * HTTP response decorator
+ */
 export class Response {
     /**
      * Native http response
@@ -515,14 +521,17 @@ export class Response {
 
 /**
  * Create a decorated version of the native HTTP server
- *
- * @param {RequestListener} fn
- * @returns {Server}
  */
 export function createServer(fn?: RequestListener): http.Server;
 
+/**
+ * Request listener signature
+ */
 export type RequestListener = (request: Request, response: Response) => void;
 
+/**
+ * Response `setCookie` options
+ */
 export interface SerializeOptions {
     /**
      * Specifies the value for the Domain Set-Cookie attribute. By default, no
