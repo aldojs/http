@@ -7,6 +7,10 @@ import * as ct from './support/content-type'
 import * as charset from './support/charset'
 import * as negotiator from './support/negotiator'
 
+export type Options = {
+  proxy?: boolean
+}
+
 export default class Request {
   /**
    * Request body
@@ -16,13 +20,21 @@ export default class Request {
   public body: any = null
 
   /**
+   * 
+   * 
+   * @type {Boolean}
+   */
+  private _proxy: boolean
+
+  /**
    * Contruct a new request instance
    * 
    * @param {http.IncomingMessage} stream
+   * @param {Object} [options]
    * @constructor
    */
-  public constructor (public stream: http.IncomingMessage, options = {}) {
-    // 
+  public constructor (public stream: http.IncomingMessage, options: Options = {}) {
+    this._proxy = options.proxy || false
   }
 
   /**
@@ -114,7 +126,7 @@ export default class Request {
    * @type {Boolean}
    */
   public get secure (): boolean {
-    return (this.stream.socket as any).encrypted
+    return this.protocol === 'https'
   }
 
   /**
@@ -123,6 +135,17 @@ export default class Request {
    * @type {String | undefined}
    */
   public get host (): string | undefined {
+    if (this._proxy === true) {
+      let host = this.headers['x-forwarded-host']
+
+      // parse
+      if (typeof host === 'string') {
+        host = this.headers['x-forwarded-host'] = host.split(/\s*,\s*/)
+      }
+
+      if (host && host[0]) return host[0]
+    }
+
     return this.headers.host as string
   }
 
@@ -132,7 +155,20 @@ export default class Request {
    * @type {String}
    */
   public get protocol (): string {
-    return this.secure ? 'https' : 'http'
+    if ((this.stream.socket as any).encrypted) return 'https'
+
+    if (this._proxy === true) {
+      let proto = this.headers['x-forwarded-proto']
+
+      // parse
+      if (typeof proto === 'string') {
+        proto = this.headers['x-forwarded-proto'] = proto.split(/\s*,\s*/)
+      }
+
+      if (proto && proto[0]) return proto[0]
+    }
+
+    return 'http'
   }
 
   /**

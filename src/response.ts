@@ -95,7 +95,7 @@ export default class Response {
    * @type {String}
    */
   public set type (value: string) {
-    var ct = mime.contentType(value as string)
+    var ct = mime.contentType(value)
 
     if (ct) this.stream.setHeader('Content-Type', ct)
   }
