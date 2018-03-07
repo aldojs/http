@@ -7,6 +7,8 @@ import * as ct from './support/content-type'
 import * as charset from './support/charset'
 import * as negotiator from './support/negotiator'
 
+const { isArray } = Array
+
 export type Options = {
   proxy?: boolean
 }
@@ -20,11 +22,11 @@ export default class Request {
   public body: any = null
 
   /**
-   * 
+   * Trust proxy headers
    * 
    * @type {Boolean}
    */
-  private _proxy: boolean
+  private _trustProxy: boolean
 
   /**
    * Contruct a new request instance
@@ -34,7 +36,7 @@ export default class Request {
    * @constructor
    */
   public constructor (public stream: http.IncomingMessage, options: Options = {}) {
-    this._proxy = options.proxy || false
+    this._trustProxy = Boolean(options.proxy)
   }
 
   /**
@@ -130,12 +132,13 @@ export default class Request {
   }
 
   /**
-   * "Host" header value
+   * Parse the "Host" header field host,
+   * and support X-Forwarded-Host when a proxy is enabled
    * 
    * @type {String | undefined}
    */
   public get host (): string | undefined {
-    if (this._proxy === true) {
+    if (this._trustProxy) {
       let host = this.headers['x-forwarded-host']
 
       // parse
@@ -143,21 +146,25 @@ export default class Request {
         host = this.headers['x-forwarded-host'] = host.split(/\s*,\s*/)
       }
 
-      if (host && host[0]) return host[0]
+      if (isArray(host)) return host[0]
     }
 
     return this.headers.host as string
   }
 
   /**
-   * Return the protocol string "http" or "https" when requested with TLS
+   * Return the protocol string "http",
+   * or "https" when requested with TLS.
+   * 
+   * When the proxy option is enabled,
+   * the "X-Forwarded-Proto" header will be trusted
    * 
    * @type {String}
    */
   public get protocol (): string {
     if ((this.stream.socket as any).encrypted) return 'https'
 
-    if (this._proxy === true) {
+    if (this._trustProxy) {
       let proto = this.headers['x-forwarded-proto']
 
       // parse
@@ -165,7 +172,7 @@ export default class Request {
         proto = this.headers['x-forwarded-proto'] = proto.split(/\s*,\s*/)
       }
 
-      if (proto && proto[0]) return proto[0]
+      if (isArray(proto)) return proto[0]
     }
 
     return 'http'
@@ -173,9 +180,36 @@ export default class Request {
 
   /**
    * Origin of the URL
+   * 
+   * @type {String}
    */
   public get origin (): string {
     return `${this.protocol}://${this.host || ''}`
+  }
+
+  /**
+   * When proxy option is set to `true`, parse
+   * the `X-Forwarded-For` ip address list.
+   * 
+   * For example if the value were "client, proxy1, proxy2"
+   * you would receive the array `["client", "proxy1", "proxy2"]`
+   * where `proxy2` is the furthest down-stream.
+   * 
+   * @type {Array<String>}
+   */
+  public get ips (): string[] {
+    if (this._trustProxy) {
+      let value = this.headers['x-forwarded-for']
+
+      // parse
+      if (typeof value === 'string') {
+        value = this.headers['x-forwarded-for'] = value.split(/\s*,\s*/)
+      }
+
+      if (isArray(value)) return value
+    }
+
+    return []
   }
 
   /**
@@ -184,7 +218,7 @@ export default class Request {
    * @type {String | undefined}
    */
   public get ip (): string | undefined {
-    return this.stream.socket.remoteAddress
+    return this.ips[0] || this.stream.socket.remoteAddress
   }
 
   /**
