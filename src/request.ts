@@ -21,7 +21,7 @@ export default class Request {
    * @param {http.IncomingMessage} stream
    * @constructor
    */
-  public constructor (public stream: http.IncomingMessage) {
+  public constructor (public stream: http.IncomingMessage, options = {}) {
     // 
   }
 

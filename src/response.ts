@@ -18,9 +18,10 @@ export default class Response {
    * Construct a new response instance
    * 
    * @param {http.ServerResponse} stream
+   * @param {Object} [options]
    * @constructor
    */
-  public constructor (public stream: http.ServerResponse) {
+  public constructor (public stream: http.ServerResponse, options = {}) {
     // 
   }
 
@@ -39,6 +40,9 @@ export default class Response {
    * @type {Number}
    */
   public set status (code: number) {
+    // skip
+    if (this.stream.headersSent) return
+
     assert('number' === typeof code, 'The status code must be a number')
     assert(code >= 100 && code <= 999, 'Invalid status code')
 
@@ -102,7 +106,7 @@ export default class Response {
    * @type {String | undefined}
    */
   public get type (): string {
-    return ct.extract(this.headers['content-type'] as string) as string
+    return ct.extract(this.get('Content-Type') as string) as string
   }
 
   /**
@@ -120,7 +124,7 @@ export default class Response {
    * @type {Number}
    */
   public get length (): number {
-    return this.headers['content-length'] as number || NaN
+    return this.get('Content-Length') as number || NaN
   }
 
   /**
@@ -199,7 +203,7 @@ export default class Response {
    * @type {Date | undefined}
    */
   public get lastModified (): Date {
-    var date = this.headers['last-modified'] as string
+    var date = this.get('Last-Modified') as string
 
     return date ? new Date(date) : undefined as any
   }
@@ -229,7 +233,7 @@ export default class Response {
    * @type {String}
    */
   public get etag (): string {
-    return this.headers.etag as string
+    return this.get('ETag') as string
   }
 
   /**
@@ -247,7 +251,7 @@ export default class Response {
    * @type {String}
    */
   public get location (): string {
-    return this.headers.location as string
+    return this.get('Location') as string
   }
 
   /**
