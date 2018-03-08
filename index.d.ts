@@ -8,9 +8,7 @@ import * as http from 'http';
  */
 export class Request {
     /**
-     * Native http request
-     * 
-     * @type {http.IncomingMessage}
+     * Native HTTP request
      */
     stream: http.IncomingMessage;
     /**
@@ -22,80 +20,56 @@ export class Request {
     /**
      * Contruct a new request instance
      *
-     * @param {http.IncomingMessage} req
-     * @constructor
+     * @param req Native HTTP request
+     * @param options Request options
      */
-    constructor(req: http.IncomingMessage);
+    constructor(req: http.IncomingMessage, options?: { proxy?: boolean });
     /**
      * Request headers
-     *
-     * @type {Object}
      */
     readonly headers: http.IncomingHttpHeaders;
     /**
      * Get the parsed cookies object
-     *
-     * @type {Object}
      */
     readonly cookies: { [x: string]: string | undefined; };
     /**
      * URL pathname
-     *
-     * @type {String}
      */
     readonly url: string;
     /**
      * Request method
-     *
-     * @type {String}
      */
     readonly method: string;
     /**
      * URL query string
-     *
-     * @type {String}
      */
     readonly querystring: string;
     /**
      * Request mime type, void of parameters such as "charset", or undefined
-     *
-     * @type {String | undefined}
      */
     readonly type: string | undefined;
     /**
      * Get the charset when present or undefined
-     *
-     * @type {String | undefined}
      */
     readonly charset: string | undefined;
     /**
      * Returns the parsed Content-Length when present or NaN
-     *
-     * @type {Number}
      */
     readonly length: number;
     /**
      * Get the parsed query string
-     *
-     * @type {Object}
      */
     readonly query: { [key: string]: string | string[] | undefined; };
     /**
      * Returns true when requested with TLS, false otherwise
-     *
-     * @type {Boolean}
      */
     readonly secure: boolean;
     /**
      * "Host" header value
-     *
-     * @type {String | undefined}
      */
     readonly host: string | undefined;
     /**
      * Return the protocol string "http" or "https" when requested with TLS
-     *
-     * @type {String}
      */
     readonly protocol: string;
     /**
@@ -103,9 +77,11 @@ export class Request {
      */
     readonly origin: string;
     /**
+     * IP address list when a `proxy` is enabled
+     */
+    readonly ips: string[];
+    /**
      * Remote IP address
-     *
-     * @type {String | undefined}
      */
     readonly ip: string | undefined;
     /**
@@ -127,8 +103,7 @@ export class Request {
      *     this.get('Something')
      *     // => undefined
      *
-     * @param {String} header
-     * @returns {String | Array<String> | undefined}
+     * @param header
      */
     get(header: string): string | string[] | undefined;
     /**
@@ -150,8 +125,7 @@ export class Request {
      *     this.has('Something')
      *     // => false
      *
-     * @param {String} header
-     * @returns {Boolean}
+     * @param header
      */
     has(header: string): boolean;
     /**
@@ -174,8 +148,7 @@ export class Request {
      *
      *     this.is('html') // => false
      *
-     * @param {String...} types
-     * @returns {String | false}
+     * @param types
      */
     is(...types: string[]): string | false;
     /**
@@ -220,8 +193,7 @@ export class Request {
      *     this.accept()
      *     // => ["text/*", "application/json"]
      *
-     * @param {String...} types
-     * @returns {String | Array<String> | false}
+     * @param types
      */
     accept(...types: string[]): string | false | string[];
     /**
@@ -239,8 +211,7 @@ export class Request {
      *     this.acceptCharset('utf-16')
      *     // => false
      *
-     * @param {String...} args
-     * @returns {String | Array<String> | false}
+     * @param args
      */
     acceptCharset(...args: string[]): string | false | string[];
     /**
@@ -258,8 +229,7 @@ export class Request {
      *     this.acceptEncoding('br')
      *     // => false
      *
-     * @param {String...} args
-     * @returns {String | Array<String> | false}
+     * @param args
      */
     acceptEncoding(...args: string[]): string | false | string[];
     /**
@@ -277,8 +247,7 @@ export class Request {
      *     this.acceptLanguage('fr')
      *     // => false
      *
-     * @param {String...} args
-     * @returns {String | Array<String> | false}
+     * @param args
      */
     acceptLanguage(...args: string[]): string | false | string[];
 }
@@ -288,113 +257,59 @@ export class Request {
  */
 export class Response {
     /**
-     * Native http response
-     * 
-     * @type {http.ServerResponse}
+     * Native HTTP response
      */
     stream: http.ServerResponse;
     /**
-     * Response internal body
-     *
-     * @type {Any}
-     */
-    private _body;
-    /**
      * Construct a new response instance
      *
-     * @param {http.ServerResponse} res
-     * @constructor
+     * @param res
      */
     constructor(res: http.ServerResponse);
     /**
-     * Response headers
-     *
-     * @type {http.OutgoingHttpHeaders}
+     * Get the response headers
+     * 
+     * Shortcut to `response.stream.getHeaders()`
      */
     readonly headers: http.OutgoingHttpHeaders;
     /**
-     * Get the response status code
-     *
-     * @type {Number}
-     */
-    /**
-     * Set the response status code
-     *
-     * @type {Number}
+     * Get or set the response status code
      */
     status: number;
     /**
-     * Get the response status code
-     *
-     * @type {Number}
-     */
-    /**
-     * Set the response status message
-     *
-     * @type {String}
+     * Get or set the response status message
      */
     message: string;
     /**
-     * Return the response mime type void of the "charset" parameter, or undefined
-     *
-     * @type {String | undefined}
-     */
-    /**
+     * Response mime type void of the "charset" parameter, or undefined
+     * 
      * Set `Content-Type` response header.
-     *
+     * 
      * Will add the the charset if not present.
-     *
+     * 
      * Examples:
-     *
+     * 
      *     response.type = '.html'
      *     response.type = 'html'
      *     response.type = 'json'
      *     response.type = 'application/json'
      *     response.type = 'png'
-     *
-     * @type {String}
      */
     type: string;
     /**
-     * Get the response content length or NaN otherwise.
-     *
-     * @type {Number}
-     */
-    /**
-     * Set `Content-Length` reponse header
-     *
-     * @type {Number}
+     * Get or set the `Content-Length` header value
      */
     length: number;
     /**
-     * Get the response body
-     *
-     * @type {Any}
-     */
-    /**
-     * Set the response body
-     *
-     * @type {String | Buffer | Object | null}
+     * Get or set the response body
      */
     body: any;
     /**
-     * Get the `Last-Modified` date, or undefined if not present
-     *
-     * @type {Date | undefined}
+     * `Last-Modified` header value, or undefined if not present
      */
+    lastModified: Date | undefined;
     /**
-     * Set the `Last-Modified` response header
-     *
-     * @type {Date}
-     */
-    lastModified: Date;
-    /**
-     * Get the `ETag` of the response.
-     *
-     * @type {String}
-     */
-    /**
-     * Set the `ETag` of the response.
+     * Get or set the `ETag` of the response.
      *
      * This will normalize the quotes if necessary.
      *
@@ -403,21 +318,18 @@ export class Response {
      *     response.etag = 'md5hashsum'
      *     response.etag = '"md5hashsum"'
      *     response.etag = 'W/"123456789"'
-     *
-     * @type {String}
      */
     etag: string;
     /**
-     * Get the `Location` response header
-     *
-     * @type {String}
-     */
-    /**
-     * Set the `Location` response header
-     *
-     * @type {String}
+     * Get or set the `Location` response header
      */
     location: string;
+    /**
+     * Append `field` to the `Vary` header
+     * 
+     * 
+     */
+    vary(field: string | string[]): this;
     /**
      * Check if the incoming request contains the "Content-Type"
      * header field, and it contains any of the give mime `type`s.
@@ -426,17 +338,25 @@ export class Response {
      *
      * Pretty much the same as `Request.is()`
      *
-     * @param {String...} types
-     * @returns {String | false}
+     * @param types
      */
     is(...types: string[]): string | false;
     /**
      * Get the response header if present, or undefined
      *
-     * @param {String} header
-     * @returns {String | number | Array<String> | undefined}
+     * @param header
      */
     get(header: string): string | number | string[] | undefined;
+    /**
+     * Set the response header, or pass an object of header fields.
+     *
+     * Example:
+     *
+     *    response.set({ Accept: 'text/plain', 'X-API-Key': 'tobi' })
+     *
+     * @param headers
+     */
+    set(headers: { [field: string]: string | number | string[]; }): this;
     /**
      * Set the response header, or pass an object of header fields.
      *
@@ -444,13 +364,10 @@ export class Response {
      *
      *    response.set('Foo', ['bar', 'baz'])
      *    response.set('Accept', 'application/json')
-     *    response.set({ Accept: 'text/plain', 'X-API-Key': 'tobi' })
      *
-     * @param {Object | String} header
-     * @param {String | Array} [value]
-     * @returns {Response} for chaining
+     * @param header
+     * @param value
      */
-    set(headers: { [field: string]: string | number | string[]; }): this;
     set(header: string, value: string | number | string[]): this;
     /**
      * Set cookie `name` to `value`, with the given `options`.
@@ -463,18 +380,16 @@ export class Response {
      *    // same as above
      *    res.cookie('remember', '1', { maxAge: 900000, httpOnly: true })
      *
-     * @param {String} name
-     * @param {String} value
-     * @param {Object} [options]
-     * @returns {Response} for chaining
+     * @param name
+     * @param value
+     * @param options
      */
     setCookie(name: string, value: string, options?: SerializeOptions): this;
     /**
      * Unset the cookie `name`.
      *
-     * @param {String} name
-     * @param {Object} [options]
-     * @returns {Response} for chaining
+     * @param name
+     * @param options
      */
     clearCookie(name: string, options?: SerializeOptions): this;
     /**
@@ -486,48 +401,89 @@ export class Response {
      *    this.append('Set-Cookie', 'foo=bar; Path=/; HttpOnly')
      *    this.append('Warning', '199 Miscellaneous warning')
      *
-     * @param {String} header
-     * @param {String | Array} value
-     * @returns {Response} for chaining
+     * @param header
+     * @param value
      */
     append(header: string, value: string | string[]): this;
     /**
      * Check if response header is defined
      *
-     * @param {String} header
-     * @returns {Boolean}
+     * @param header
      */
     has(header: string): boolean;
     /**
      * Remove the response header
      *
-     * @param {String} header
-     * @returns {Response} for chaining
+     * @param header
      */
     remove(header: string): this;
     /**
      * Reset all response headers
      *
-     * @returns {Response} for chaining
+     * @param headers
      */
-    reset(): this;
+    reset(headers?: { [field: string]: string | number | string[]; }): this;
     /**
      * Send and end the response stream
-     *
-     * @param {String | Buffer | Object} [content]
+     * 
+     * @param content
      */
     send(content?: any): void;
 }
 
 /**
- * Create a decorated version of the native HTTP server
+ * HTTP server decorator
  */
-export function createServer(fn?: RequestListener): http.Server;
+export class Server extends http.Server {
+    /**
+     * Initialize a new Server instance
+     * 
+     * @param options
+     */
+    constructor(options?: ServerOptions);
+}
 
 /**
- * Request listener signature
+ * Create a HTTP server
+ * 
+ * @param options
+ * @param fn request listener
  */
-export type RequestListener = (request: Request, response: Response) => void;
+export function createServer(options: ServerOptions, fn: RequestListener): Server;
+/**
+ * Create a HTTP server
+ * 
+ * @param options
+ */
+export function createServer(options: ServerOptions): Server;
+/**
+ * Create a HTTP server
+ * 
+ * @param fn request listener
+ */
+export function createServer(fn: RequestListener): Server;
+/**
+ * Create a HTTP server
+ */
+export function createServer(): Server;
+
+/**
+ * `createServer` options
+ */
+export interface ServerOptions {
+    /**
+     * Specifies whenever `X-Forwarded-*` headers can be trusted by the request.
+     * By default, its value is `false`.
+     */
+    proxy?: boolean
+}
+
+/**
+ * Request listener callback
+ */
+export interface RequestListener {
+    (request: Request, response: Response): void;
+}
 
 /**
  * Response `setCookie` options
