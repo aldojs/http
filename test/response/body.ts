@@ -2,7 +2,7 @@
 import * as assert from 'assert'
 import { createResponse } from '../support'
 
-describe('Test response body manipulation', () => {
+describe('response body manipulation', () => {
   describe('response.body=', () => {
     it('should not override the status when is set', () => {
       let response = createResponse()

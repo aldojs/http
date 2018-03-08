@@ -2,7 +2,7 @@
 import * as assert from 'assert'
 import { createResponse } from '../support'
 
-describe('Test response type manipulation', () => {
+describe('response type manipulation', () => {
   describe('response.type', () => {
     it('should return an empty string when the Content-Type is undefined', () => {
       let resp = createResponse()

@@ -2,7 +2,7 @@
 import * as assert from 'assert'
 import { createResponse } from '../support'
 
-describe('Test response status message manipulation', () => {
+describe('response status message manipulation', () => {
   describe('response.message', () => {
     it('should get the status message', () => {
       let response = createResponse({
