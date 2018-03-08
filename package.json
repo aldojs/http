@@ -6,6 +6,10 @@
   "engines" : {
     "node" : ">=8.9"
   },
+  "files": [
+    "lib",
+    "index.d.ts"
+  ],
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build",
@@ -17,6 +21,7 @@
   },
   "keywords": [
     "http",
+    "server",
     "request",
     "response",
     "create-server"

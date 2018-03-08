@@ -1,7 +1,0 @@
-src
-test
-examples
-.gitignore
-.travis.yml
-tsconfig.json
-CONTRIBUTING.md
