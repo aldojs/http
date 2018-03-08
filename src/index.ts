@@ -6,9 +6,8 @@ import Response from './response'
 /**
  * Create a HTTP Server
  * 
- * @param {Object} [options]
- * @param {Function} [fn]
- * @returns {Server}
+ * @param options
+ * @param fn
  */
 export function createServer (options?: object, fn?: (req: Request, res: Response) => void): Server
 export function createServer (fn?: (req: Request, res: Response) => void): Server
