@@ -229,7 +229,7 @@ export default class Response {
     if (this.stream.headersSent) return this
 
     // match all
-    if (field.indexOf('*')) {
+    if (field.includes('*')) {
       this.stream.setHeader('Vary', '*')
       return this
     }
