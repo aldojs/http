@@ -2,14 +2,15 @@
 import * as url from './url'
 import * as qs from 'querystring'
 
-export function parse (req: any): { [x: string]: any } {
-  var urlObject = url.parse(req)
-  var value = urlObject.query || {}
+const SYMBOL = '@@REQUEST-QUERY'
 
+export function parse (req: any): { [x: string]: any } {
   // parse
-  if (typeof value === 'string') {
-    value = urlObject.query = qs.parse(value)
+  if (!req[SYMBOL]) {
+    let str = <string> url.parse(req).query || ''
+
+    req[SYMBOL] = (str ? qs.parse(str) : {})
   }
 
-  return value
+  return req[SYMBOL]
 }
