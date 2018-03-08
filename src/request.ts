@@ -20,8 +20,11 @@ export default class Request {
 
   /**
    * Contruct a new request instance
+   * 
+   * @param stream
+   * @param options
    */
-  public constructor (public stream: http.IncomingMessage, options: { proxy?: boolean }) {
+  public constructor (public stream: http.IncomingMessage, options: { proxy?: boolean } = {}) {
     this._trustProxy = Boolean(options.proxy)
   }
 

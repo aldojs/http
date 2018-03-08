@@ -7,9 +7,9 @@ import { setImmediate } from 'timers'
 type Listener = (...args: any[]) => void
 
 export default class Server extends http.Server {
-  private _options: object
+  private _options?: object
 
-  public constructor (options = {}) {
+  public constructor (options?: {}) {
     super()
 
     this._options = options

@@ -25,4 +25,4 @@ export function createServer (options?: any, fn?: any) {
   return server
 }
 
-export { Request, Response }
+export { Request, Response, Server }
