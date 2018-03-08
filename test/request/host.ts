@@ -21,33 +21,31 @@ describe('request.host', () => {
     })
   })
 
-  // describe('when X-Forwarded-Host is present', () => {
-  //   describe('and proxy is not trusted', () => {
-  //     it('should be ignored', () => {
-  //       const request = createRequest({
-  //         headers: {
-  //           'x-forwarded-host': 'bar.com',
-  //           'host': 'foo.com'
-  //         }
-  //       })
+  describe('when X-Forwarded-Host is present', () => {
+    describe('and proxy is not trusted', () => {
+      it('should be ignored', () => {
+        const request = createRequest({
+          headers: {
+            'x-forwarded-host': 'bar.com',
+            'host': 'foo.com'
+          }
+        })
 
-  //       assert.equal(request.host, 'foo.com')
-  //     })
-  //   })
+        assert.equal(request.host, 'foo.com')
+      })
+    })
 
-  //   describe('and proxy is trusted', () => {
-  //     it('should be used', () => {
-  //       const request = createRequest({
-  //         headers: {
-  //           'x-forwarded-host': 'bar.com, baz.com',
-  //           'host': 'foo.com'
-  //         }
-  //       })
+    describe('and proxy is trusted', () => {
+      it('should be used', () => {
+        const request = createRequest({
+          headers: {
+            'x-forwarded-host': 'bar.com, baz.com',
+            'host': 'foo.com'
+          }
+        }, { proxy: true })
 
-  //       // request.proxy = true
-
-  //       assert.equal(request.host, 'bar.com')
-  //     })
-  //   })
-  // })
+        assert.equal(request.host, 'bar.com')
+      })
+    })
+  })
 })
