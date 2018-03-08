@@ -2,10 +2,14 @@
 import * as url from './url'
 import * as qs from 'querystring'
 
-const SYMBOL = Symbol('REQUEST#QUERY')
-
 export function parse (req: any): { [x: string]: any } {
-  var str = <string> url.parse(req).query || ''
+  var urlObject = url.parse(req)
+  var value = urlObject.query || {}
 
-  return req[SYMBOL] || (req[SYMBOL] = (str ? qs.parse(str) : {}))
+  // parse
+  if (typeof value === 'string') {
+    value = urlObject.query = qs.parse(value)
+  }
+
+  return value
 }
