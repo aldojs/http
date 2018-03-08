@@ -1,8 +1,8 @@
 
 import { Request, Response } from '../../src'
 
-export function createRequest (req?: any) {
-  return new Request(_requestFrom(req))
+export function createRequest (req?: any, options?: { proxy: boolean }) {
+  return new Request(_requestFrom(req), options)
 }
 
 export function createResponse (res?: any) {
