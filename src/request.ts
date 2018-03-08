@@ -7,42 +7,26 @@ import * as ct from './support/content-type'
 import * as charset from './support/charset'
 import * as negotiator from './support/negotiator'
 
-const { isArray } = Array
-
-export type Options = {
-  proxy?: boolean
-}
-
 export default class Request {
   /**
    * Request body
-   * 
-   * @type {Any}
    */
   public body: any = null
 
   /**
    * Trust proxy headers
-   * 
-   * @type {Boolean}
    */
   private _trustProxy: boolean
 
   /**
    * Contruct a new request instance
-   * 
-   * @param {http.IncomingMessage} stream
-   * @param {Object} [options]
-   * @constructor
    */
-  public constructor (public stream: http.IncomingMessage, options: Options = {}) {
+  public constructor (public stream: http.IncomingMessage, options: { proxy?: boolean }) {
     this._trustProxy = Boolean(options.proxy)
   }
 
   /**
    * Request headers
-   * 
-   * @type {Object}
    */
   public get headers (): http.IncomingHttpHeaders {
     return this.stream.headers
@@ -50,8 +34,6 @@ export default class Request {
 
   /**
    * Get the parsed cookies object
-   * 
-   * @type {Object}
    */
   public get cookies (): { [x: string]: string | undefined } {
     return cookie.parse(this.stream)
@@ -59,8 +41,6 @@ export default class Request {
 
   /**
    * URL pathname
-   * 
-   * @type {String}
    */
   public  get url (): string {
     return url.parse(this.stream).pathname || '/'
@@ -68,8 +48,6 @@ export default class Request {
 
   /**
    * Request method
-   * 
-   * @type {String}
    */
   public get method (): string {
     return this.stream.method || 'GET'
@@ -77,8 +55,6 @@ export default class Request {
 
   /**
    * URL query string
-   * 
-   * @type {String}
    */
   public get querystring (): string {
     return url.parse(this.stream).query as string || ''
@@ -86,8 +62,6 @@ export default class Request {
 
   /**
    * Request mime type, void of parameters such as "charset", or undefined
-   * 
-   * @type {String | undefined}
    */
   public get type (): string | undefined {
     return ct.extract(this.headers['content-type'] as string)
@@ -95,8 +69,6 @@ export default class Request {
 
   /**
    * Get the charset when present or undefined
-   * 
-   * @type {String | undefined}
    */
   public get charset (): string | undefined {
     return charset.extract(this.headers['content-type'] as string)
@@ -104,8 +76,6 @@ export default class Request {
 
   /**
    * Returns the parsed Content-Length when present or NaN
-   * 
-   * @type {Number}
    */
   public get length (): number {
     var len = this.headers['content-length'] as string
@@ -115,8 +85,6 @@ export default class Request {
 
   /**
    * Get the parsed query string
-   * 
-   * @type {Object}
    */
   public get query (): { [key: string]: string | string[] | undefined } {
     return qs.parse(this.stream)
@@ -124,8 +92,6 @@ export default class Request {
 
   /**
    * Returns true when requested with TLS, false otherwise
-   * 
-   * @type {Boolean}
    */
   public get secure (): boolean {
     return this.protocol === 'https'
@@ -134,22 +100,15 @@ export default class Request {
   /**
    * Parse the "Host" header field host,
    * and support X-Forwarded-Host when a proxy is enabled
-   * 
-   * @type {String | undefined}
    */
   public get host (): string | undefined {
     if (this._trustProxy) {
-      let host = this.headers['x-forwarded-host']
+      let values = _parse(this.headers, 'x-forwarded-host')
 
-      // parse
-      if (typeof host === 'string') {
-        host = this.headers['x-forwarded-host'] = host.split(/\s*,\s*/)
-      }
-
-      if (isArray(host)) return host[0]
+      if (values[0]) return (values[0])
     }
 
-    return this.headers.host as string
+    return this.headers.host
   }
 
   /**
@@ -158,21 +117,14 @@ export default class Request {
    * 
    * When the proxy option is enabled,
    * the "X-Forwarded-Proto" header will be trusted
-   * 
-   * @type {String}
    */
   public get protocol (): string {
     if ((this.stream.socket as any).encrypted) return 'https'
 
     if (this._trustProxy) {
-      let proto = this.headers['x-forwarded-proto']
+      let values = _parse(this.headers, 'x-forwarded-proto')
 
-      // parse
-      if (typeof proto === 'string') {
-        proto = this.headers['x-forwarded-proto'] = proto.split(/\s*,\s*/)
-      }
-
-      if (isArray(proto)) return proto[0]
+      if (values[0]) return values[0]
     }
 
     return 'http'
@@ -180,8 +132,6 @@ export default class Request {
 
   /**
    * Origin of the URL
-   * 
-   * @type {String}
    */
   public get origin (): string {
     return `${this.protocol}://${this.host || ''}`
@@ -189,33 +139,18 @@ export default class Request {
 
   /**
    * When proxy option is set to `true`, parse
-   * the `X-Forwarded-For` ip address list.
+   * the `X-Forwarded-For` header for IP address list.
    * 
    * For example if the value were "client, proxy1, proxy2"
    * you would receive the array `["client", "proxy1", "proxy2"]`
    * where `proxy2` is the furthest down-stream.
-   * 
-   * @type {Array<String>}
    */
   public get ips (): string[] {
-    if (this._trustProxy) {
-      let value = this.headers['x-forwarded-for']
-
-      // parse
-      if (typeof value === 'string') {
-        value = this.headers['x-forwarded-for'] = value.split(/\s*,\s*/)
-      }
-
-      if (isArray(value)) return value
-    }
-
-    return []
+    return this._trustProxy ? _parse(this.headers, 'x-forwarded-for') : []
   }
 
   /**
    * Remote IP address
-   * 
-   * @type {String | undefined}
    */
   public get ip (): string | undefined {
     return this.ips[0] || this.stream.socket.remoteAddress
@@ -240,8 +175,7 @@ export default class Request {
    *     this.get('Something')
    *     // => undefined
    * 
-   * @param {String} header
-   * @returns {String | Array<String> | undefined}
+   * @param header
    */
   public get (header: string): string | string[] | undefined {
     switch (header = header.toLowerCase()) {
@@ -273,8 +207,7 @@ export default class Request {
    *     this.has('Something')
    *     // => false
    * 
-   * @param {String} header
-   * @returns {Boolean}
+   * @param header
    */
   public has (header: string): boolean {
     return this.get(header) !== undefined
@@ -300,8 +233,7 @@ export default class Request {
    *
    *     this.is('html') // => false
    * 
-   * @param {String...} types
-   * @returns {String | false}
+   * @param types
    */
   public is (...types: string[]): string | false {
     return ct.is(this.type, types)
@@ -349,8 +281,7 @@ export default class Request {
    *     this.accept()
    *     // => ["text/*", "application/json"]
    * 
-   * @param {String...} types
-   * @returns {String | Array<String> | false}
+   * @param types
    */
   public accept (...types: string[]): string | false | string[] {
     return negotiator.accept(this.stream, types)
@@ -371,8 +302,7 @@ export default class Request {
    *     this.acceptCharset('utf-16')
    *     // => false
    * 
-   * @param {String...} args
-   * @returns {String | Array<String> | false}
+   * @param args
    */
   public acceptCharset (...args: string[]): string | false | string[] {
     return negotiator.acceptCharset(this.stream, args)
@@ -393,8 +323,7 @@ export default class Request {
    *     this.acceptEncoding('br')
    *     // => false
    * 
-   * @param {String...} args
-   * @returns {String | Array<String> | false}
+   * @param args
    */
   public acceptEncoding (...args: string[]): string | false | string[] {
     return negotiator.acceptEncoding(this.stream, args)
@@ -415,10 +344,25 @@ export default class Request {
    *     this.acceptLanguage('fr')
    *     // => false
    * 
-   * @param {String...} args
-   * @returns {String | Array<String> | false}
+   * @param args
    */
   public acceptLanguage (...args: string[]): string | false | string[] {
     return negotiator.acceptLanguage(this.stream, args)
   }
+}
+
+/**
+ * Parse `X-Forwarded-*` headers
+ * 
+ * @private
+ */
+function _parse (headers: http.IncomingHttpHeaders, field: string): string[] {
+  let value = headers[field] || ''
+
+  // parse
+  if (typeof value === 'string') {
+    value = headers[field] = value.split(/\s*,\s*/)
+  }
+
+  return Array.isArray(value) ? value : []
 }
