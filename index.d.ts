@@ -2,6 +2,7 @@
 /// <reference types="node" />
 
 import * as http from 'http';
+import * as https from 'https';
 
 /**
  * HTTP request decorator
@@ -440,7 +441,30 @@ export class Server extends http.Server {
      * 
      * @param options
      */
-    constructor(options?: ServerOptions);
+    constructor (native: http.Server | https.Server, options?: ServerOptions);
+    /**
+     * Add a `listener` for the given `event`
+     * 
+     * @param event
+     * @param fn listener
+     */
+    on (event: string, fn: (...args: any[]) => void): this;
+    /**
+     * Start a server listening for requests
+     * 
+     * @param options
+     */
+    start (options: { port?: number, host?: string }): Promise<void>;
+    /**
+     * Start a server listening for requests
+     * 
+     * @param port
+     */
+    start (port: number): Promise<void>;
+    /**
+     * Stops the server from accepting new requests
+     */
+    stop (): Promise<void>;
 }
 
 /**
@@ -476,6 +500,10 @@ export interface ServerOptions {
      * By default, its value is `false`.
      */
     proxy?: boolean
+    /**
+     * Secure server options
+     */
+    tls?: https.ServerOptions
 }
 
 /**

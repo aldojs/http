@@ -10,4 +10,4 @@ server.on('request', (request, response) => {
 })
 
 // start
-server.listen(3000)
+server.start(3000)

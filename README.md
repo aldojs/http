@@ -19,7 +19,7 @@ const server = createServer((request, response) => {
 })
 
 // start
-server.listen(3000)
+server.start(3000)
 ```
 
 The above code is similar to the following

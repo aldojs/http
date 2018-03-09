@@ -1,22 +1,21 @@
 
+import * as net from 'net'
 import * as http from 'http'
+import * as https from 'https'
 import Request from './request'
 import Response from './response'
 import { setImmediate } from 'timers'
 
-type Listener = (...args: any[]) => void
-
-export default class Server extends http.Server {
-  private _options?: {}
+export default class Server {
+  private _options: {}
 
   /**
    * Initialize a Server instance
    * 
+   * @param native HTTP(S) server instance
    * @param options
    */
-  public constructor (options?: {}) {
-    super()
-
+  public constructor (public native: http.Server | https.Server, options = {}) {
     this._options = options
   }
 
@@ -24,33 +23,57 @@ export default class Server extends http.Server {
    * Add a `listener` for the given `event`
    * 
    * @param event
-   * @param listener
+   * @param fn listener
    */
-  public on (event: string, listener: Listener): this {
-    return this.addListener(event, listener)
+  public on (event: string, fn: (...args: any[]) => void): this {
+    if (event === 'request') fn = this._wrap(fn)
+
+    this.native.on(event, fn)
+    return this
   }
 
   /**
-   * Add a `listener` for the given `event`
+   * Start a server listening for requests
    * 
-   * @param event
-   * @param listener
+   * @param options
    */
-  public addListener (event: string, listener: Listener): this {
-    return super.addListener(event, this._wrap(event, listener))
+  public start (options: { port?: number, host?: string }): Promise<void>
+  /**
+   * Start a server listening for requests
+   * 
+   * @param port
+   */
+  public start (port: number): Promise<void>
+  public start (options: any) {
+    if (typeof options === 'number') {
+      options = { port: options }
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      this.native.listen(options, (err: any) => {
+        err ? reject(err) : resolve()
+      })
+    })
+  }
+
+  /**
+   * Stops the server from accepting new requests
+   */
+  public stop (): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
+      this.native.close((err: any) => {
+        err ? reject(err) : resolve()
+      })
+    })
   }
 
   /**
    * Wrap the `request` event listener
    * 
-   * @param {String} event
-   * @param {Function} fn
-   * @returns {Function}
+   * @param fn event listener
    * @private
    */
-  private _wrap (event: string, fn: Listener): Listener {
-    if (event !== 'request') return fn
-
+  private _wrap (fn: (...args: any[]) => void): (...args: any[]) => void {
     var opts = this._options
 
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
