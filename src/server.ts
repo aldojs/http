@@ -20,6 +20,13 @@ export default class Server {
   }
 
   /**
+   * Indicate whether or not the server is ready to handle requests
+   */
+  public get ready (): boolean {
+    return this.native.listening
+  }
+
+  /**
    * Add a `listener` for the given `event`
    * 
    * @param event
@@ -29,6 +36,7 @@ export default class Server {
     if (event === 'request') fn = this._wrap(fn)
 
     this.native.on(event, fn)
+
     return this
   }
 
@@ -37,7 +45,7 @@ export default class Server {
    * 
    * @param options
    */
-  public start (options: { port?: number, host?: string }): Promise<void>
+  public start (options: net.ListenOptions): Promise<void>
   /**
    * Start a server listening for requests
    * 
@@ -50,8 +58,16 @@ export default class Server {
     }
 
     return new Promise<void>((resolve, reject) => {
-      this.native.listen(options, (err: any) => {
-        err ? reject(err) : resolve()
+      // attach the error listener
+      this.native.once('error', reject)
+
+      // listening
+      this.native.listen(options, () => {
+        // remove the unecessary error listener
+        this.native.removeListener('error', reject)
+
+        // resolve the promise
+        resolve()
       })
     })
   }

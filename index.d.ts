@@ -1,6 +1,7 @@
 
 /// <reference types="node" />
 
+import * as net from 'net';
 import * as http from 'http';
 import * as https from 'https';
 
@@ -435,13 +436,17 @@ export class Response {
 /**
  * HTTP server decorator
  */
-export class Server extends http.Server {
+export class Server {
     /**
      * Initialize a new Server instance
      * 
      * @param options
      */
     constructor (native: http.Server | https.Server, options?: ServerOptions);
+    /**
+     * Indicate whether or not the server is ready to handle requests
+     */
+    readonly ready: boolean;
     /**
      * Add a `listener` for the given `event`
      * 
@@ -454,7 +459,7 @@ export class Server extends http.Server {
      * 
      * @param options
      */
-    start (options: { port?: number, host?: string }): Promise<void>;
+    start (options: net.ListenOptions): Promise<void>;
     /**
      * Start a server listening for requests
      * 
@@ -462,7 +467,7 @@ export class Server extends http.Server {
      */
     start (port: number): Promise<void>;
     /**
-     * Stops the server from accepting new requests
+     * Stop the server from accepting new requests
      */
     stop (): Promise<void>;
 }
@@ -473,13 +478,13 @@ export class Server extends http.Server {
  * @param options
  * @param fn request listener
  */
-export function createServer(options: ServerOptions, fn: RequestListener): Server;
+export function createServer(options: CreateServerOptions, fn: RequestListener): Server;
 /**
  * Create a HTTP server
  * 
  * @param options
  */
-export function createServer(options: ServerOptions): Server;
+export function createServer(options: CreateServerOptions): Server;
 /**
  * Create a HTTP server
  * 
@@ -500,6 +505,12 @@ export interface ServerOptions {
      * By default, its value is `false`.
      */
     proxy?: boolean
+}
+
+/**
+ * `createServer` options
+ */
+export interface CreateServerOptions extends ServerOptions {
     /**
      * Secure server options
      */
