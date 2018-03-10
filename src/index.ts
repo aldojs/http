@@ -19,6 +19,12 @@ export function createServer (): Server
 /**
  * Create a HTTP Server
  * 
+ * @param options
+ */
+export function createServer (options: Options): Server
+/**
+ * Create a HTTP Server
+ * 
  * @param fn
  */
 export function createServer (fn: (req: Request, res: Response) => void): Server

@@ -15,15 +15,13 @@ export class Request {
     stream: http.IncomingMessage;
     /**
      * Request body
-     *
-     * @type {Any}
      */
     body: any;
     /**
      * Contruct a new request instance
      *
-     * @param req Native HTTP request
-     * @param options Request options
+     * @param req
+     * @param options
      */
     constructor(req: http.IncomingMessage, options?: { proxy?: boolean });
     /**
@@ -33,7 +31,7 @@ export class Request {
     /**
      * Get the parsed cookies object
      */
-    readonly cookies: { [x: string]: string | undefined; };
+    readonly cookies: { [name: string]: string | undefined; };
     /**
      * URL pathname
      */
@@ -266,8 +264,9 @@ export class Response {
      * Construct a new response instance
      *
      * @param res
+     * @param options
      */
-    constructor(res: http.ServerResponse);
+    constructor(res: http.ServerResponse, options?: {});
     /**
      * Get the response headers
      * 
@@ -386,14 +385,14 @@ export class Response {
      * @param value
      * @param options
      */
-    setCookie(name: string, value: string, options?: SerializeOptions): this;
+    setCookie(name: string, value: string, options?: SerializeCookieOptions): this;
     /**
      * Unset the cookie `name`.
      *
      * @param name
      * @param options
      */
-    clearCookie(name: string, options?: SerializeOptions): this;
+    clearCookie(name: string, options?: SerializeCookieOptions): this;
     /**
      * Append additional header name
      * 
@@ -443,10 +442,6 @@ export class Server {
      * @param options
      */
     constructor (native: http.Server | https.Server, options?: ServerOptions);
-    /**
-     * Indicate whether or not the server is ready to handle requests
-     */
-    readonly ready: boolean;
     /**
      * Add a `listener` for the given `event`
      * 
@@ -527,7 +522,7 @@ export interface RequestListener {
 /**
  * Response `setCookie` options
  */
-export interface SerializeOptions {
+export interface SerializeCookieOptions {
     /**
      * Specifies the value for the Domain Set-Cookie attribute. By default, no
      * domain is set, and most clients will consider the cookie to apply to only

@@ -20,13 +20,6 @@ export default class Server {
   }
 
   /**
-   * Indicate whether or not the server is ready to handle requests
-   */
-  public get ready (): boolean {
-    return this.native.listening
-  }
-
-  /**
    * Add a `listener` for the given `event`
    * 
    * @param event
