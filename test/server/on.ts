@@ -1,9 +1,9 @@
 
 import 'mocha'
-import * as http from 'http'
 import * as sinon from 'sinon'
 import * as assert from 'assert'
 import { Server } from '../../src'
+import { createHttpServerStub } from '../support'
 
 const NOOP = () => {}
 
@@ -12,7 +12,7 @@ describe('server.on(event, listener)', () => {
   var server
 
   beforeEach(() => {
-    stub = _createHttpServerStub()
+    stub = createHttpServerStub()
     server = new Server(stub)
   })
 
@@ -44,7 +44,3 @@ describe('server.on(event, listener)', () => {
     assert(stub.on.calledOnceWith('foo', NOOP))
   })
 })
-
-function _createHttpServerStub (): sinon.SinonStub {
-  return sinon.createStubInstance(http.Server)
-}
