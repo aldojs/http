@@ -2,10 +2,7 @@
 const { createServer } = require('..')
 
 // server
-const server = createServer()
-
-// handler
-server.on('request', (request, response) => {
+const server = createServer((request, response) => {
   response.send('Hello world!')
 })
 
