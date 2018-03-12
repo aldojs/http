@@ -125,10 +125,9 @@ export default class Response {
     if (value == null) {
       if (!statuses.empty[this.status]) this.status = 204
 
-      this.stream.removeHeader('Transfer-Encoding')
-      this.stream.removeHeader('Content-Length')
-      this.stream.removeHeader('Content-type')
-
+      this.remove('Transfer-Encoding')
+      this.remove('Content-Length')
+      this.remove('Content-type')
       return
     }
 
@@ -137,32 +136,33 @@ export default class Response {
 
     // string
     if (typeof value === 'string') {
-      if (!this.stream.hasHeader('Content-Type')) {
+      if (!this.has('Content-Type')) {
         let type = /^\s*</.test(value) ? 'html' : 'plain'
 
-        this.stream.setHeader('Content-Type', `text/${type}; charset=utf-8`)
+        this.set('Content-Type', `text/${type}; charset=utf-8`)
       }
 
-      this.stream.setHeader('Content-Length', Buffer.byteLength(value))
-
+      this.set('Content-Length', Buffer.byteLength(value))
       return
     }
 
     // buffer
     if (Buffer.isBuffer(value)) {
-      if (!this.stream.hasHeader('Content-Type')) {
-        this.stream.setHeader('Content-Type', 'application/octet-stream')
+      if (!this.has('Content-Type')) {
+        this.set('Content-Type', 'application/octet-stream')
       }
 
-      this.stream.setHeader('Content-Length', value.length)
-
+      this.set('Content-Length', value.length)
       return
     }
 
     // json
     this._body = value = JSON.stringify(value)
-    this.stream.setHeader('Content-Length', Buffer.byteLength(value))
-    this.stream.setHeader('Content-Type', 'application/json; charset=utf-8')
+    this.set('Content-Length', Buffer.byteLength(value))
+
+    if (!this.has('Content-Type')) {
+      this.set('Content-Type', 'application/json; charset=utf-8')
+    }
   }
 
   /**
@@ -303,15 +303,15 @@ export default class Response {
   
   public set (header: string, value: string | number | string[]): this
   public set (header: any, value?: any) {
-    if (typeof header === 'object') {
+    if (typeof header === 'string') {
+      this.stream.setHeader(header, value)
+    }
+    else if (typeof header === 'object') {
       for (let name in header) {
         this.stream.setHeader(name, header[name])
       }
-
-      return this
     }
 
-    this.stream.setHeader(header, value)
     return this
   }
 

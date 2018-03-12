@@ -1,4 +1,5 @@
 
+import 'mocha'
 import * as assert from 'assert'
 import { createResponse } from '../support'
 
@@ -23,13 +24,14 @@ describe('response body manipulation', () => {
         assert.equal(response.type, 'text/plain')
       })
 
-      it('should override it when the body is an object', () => {
+      // issue #6
+      it('should not override it when the body is an object', () => {
         let response = createResponse()
 
-        response.type = 'txt'
+        response.type = 'application/foo.bar+json'
         response.body = { 'foo': 'bar' }
 
-        assert.equal(response.type, 'application/json')
+        assert.equal(response.type, 'application/foo.bar+json')
       })
     })
 
