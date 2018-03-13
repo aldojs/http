@@ -5,6 +5,7 @@ import * as cookie from './support/cookie'
 import * as qs from './support/query-string'
 import * as ct from './support/content-type'
 import * as charset from './support/charset'
+import * as forwarded from './support/forwarded'
 import * as negotiator from './support/negotiator'
 
 export default class Request {
@@ -106,7 +107,7 @@ export default class Request {
    */
   public get host (): string | undefined {
     if (this._trustProxy) {
-      let values = _parse(this.headers, 'x-forwarded-host')
+      let values = forwarded.parse(this.stream, 'x-forwarded-host')
 
       if (values[0]) return (values[0])
     }
@@ -125,7 +126,7 @@ export default class Request {
     if ((this.stream.socket as any).encrypted) return 'https'
 
     if (this._trustProxy) {
-      let values = _parse(this.headers, 'x-forwarded-proto')
+      let values = forwarded.parse(this.stream, 'x-forwarded-proto')
 
       if (values[0]) return values[0]
     }
@@ -149,7 +150,7 @@ export default class Request {
    * where `proxy2` is the furthest down-stream.
    */
   public get ips (): string[] {
-    return this._trustProxy ? _parse(this.headers, 'x-forwarded-for') : []
+    return this._trustProxy ? forwarded.parse(this.stream, 'x-forwarded-for') : []
   }
 
   /**
@@ -352,20 +353,4 @@ export default class Request {
   public acceptLanguage (...args: string[]): string | false | string[] {
     return negotiator.acceptLanguage(this.stream, args)
   }
-}
-
-/**
- * Parse `X-Forwarded-*` headers
- * 
- * @private
- */
-function _parse (headers: http.IncomingHttpHeaders, field: string): string[] {
-  let value = headers[field] || ''
-
-  // parse
-  if (typeof value === 'string') {
-    value = headers[field] = value.split(/\s*,\s*/)
-  }
-
-  return Array.isArray(value) ? value : []
 }

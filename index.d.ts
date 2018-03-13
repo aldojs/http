@@ -274,6 +274,10 @@ export class Response {
      */
     readonly headers: http.OutgoingHttpHeaders;
     /**
+     * Checks if the request is writable.
+     */
+    readonly writable: boolean;
+    /**
      * Get or set the response status code
      */
     status: number;

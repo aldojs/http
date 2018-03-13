@@ -6,6 +6,9 @@ import * as statuses from 'statuses'
 import * as cookie from './support/cookie'
 import * as ct from './support/content-type'
 
+const HTML_TAG_RE = /^\s*</
+const SEPARATOR_RE = /\s*,\s*/
+
 export default class Response {
   /**
    * Response internal body
@@ -32,19 +35,31 @@ export default class Response {
   }
 
   /**
+   * Checks if the request is writable.
+   */
+  public get writable (): boolean {
+    // can't write any more after response finished
+    if (this.stream.finished) return false
+
+    // pending writable outgoing response
+    if (!this.stream.connection) return true
+
+    return this.stream.connection.writable
+  }
+
+  /**
    * Set the response status code
    */
   public set status (code: number) {
-    // skip
-    if (this.stream.headersSent) return
+    if (!this.stream.headersSent) {
+      assert('number' === typeof code, 'The status code must be a number')
+      assert(code >= 100 && code <= 999, 'Invalid status code')
 
-    assert('number' === typeof code, 'The status code must be a number')
-    assert(code >= 100 && code <= 999, 'Invalid status code')
+      this.stream.statusCode = code
+      this.message = statuses[code] || ''
 
-    this.stream.statusCode = code
-    this.message = statuses[code] || ''
-
-    if (this.body && statuses.empty[code]) this.body = null
+      if (this.body && statuses.empty[code]) this.body = null
+    }
   }
 
   /**
@@ -84,7 +99,7 @@ export default class Response {
   public set type (value: string) {
     var ct = mime.contentType(value)
 
-    if (ct) this.stream.setHeader('Content-Type', ct)
+    if (ct) this.set('Content-Type', ct)
   }
 
   /**
@@ -98,7 +113,7 @@ export default class Response {
    * Set `Content-Length` reponse header
    */
   public set length (value: number) {
-    this.stream.setHeader('Content-Length', value)
+    this.set('Content-Length', value)
   }
 
   /**
@@ -119,6 +134,9 @@ export default class Response {
    * Set the response body
    */
   public set body (value: any) {
+    // skip
+    if (!this.writable) return
+
     this._body = value
 
     // empty body
@@ -137,7 +155,7 @@ export default class Response {
     // string
     if (typeof value === 'string') {
       if (!this.has('Content-Type')) {
-        let type = /^\s*</.test(value) ? 'html' : 'plain'
+        let type = HTML_TAG_RE.test(value) ? 'html' : 'plain'
 
         this.set('Content-Type', `text/${type}; charset=utf-8`)
       }
@@ -169,7 +187,7 @@ export default class Response {
    * Set the `Last-Modified` response header
    */
   public set lastModified (value: Date) {
-    this.stream.setHeader('Last-Modified', value.toUTCString())
+    this.set('Last-Modified', value.toUTCString())
   }
 
   /**
@@ -195,7 +213,7 @@ export default class Response {
   public set etag (value: string) {
     if (!/^(W\/)?"/.test(value)) value = `"${value}"`
 
-    this.stream.setHeader('ETag', value)
+    this.set('ETag', value)
   }
 
   /**
@@ -209,7 +227,7 @@ export default class Response {
    * Set the `Location` response header
    */
   public set location (url: string) {
-    this.stream.setHeader('Location', encodeURI(url))
+    this.set('Location', encodeURI(url))
   }
 
   /**
@@ -217,19 +235,6 @@ export default class Response {
    */
   public get location (): string {
     return this.get('Location') as string
-  }
-
-  /**
-   * Checks if the request is writable.
-   */
-  public get writable (): boolean {
-    // can't write any more after response finished
-    if (this.stream.finished) return false
-
-    // pending writable outgoing response
-    if (!this.stream.connection) return true
-
-    return this.stream.connection.writable
   }
 
   /**
@@ -257,7 +262,7 @@ export default class Response {
 
     // existing
     if (value !== '*') {
-      let array = Array.isArray(field) ? field : field.split(/\s*,\s*/)
+      let array = Array.isArray(field) ? field : field.split(SEPARATOR_RE)
 
       for (let item of array) {
         if (!value.includes(item)) value += `, ${item}`
@@ -380,8 +385,7 @@ export default class Response {
       value = oldValue.concat(value)
     }
 
-    this.stream.setHeader(header, value)
-    return this
+    return this.set(header, value)
   }
 
   /**
@@ -425,12 +429,12 @@ export default class Response {
    */
   public send (content?: any): void {
     // already sent
-    if (!this.stream.writable) return
+    if (!this.writable) return
 
     // body
     if (content) this.body = content
 
-    var { body, status, stream: res } = this
+    var { body, status, message, stream: res } = this
 
     // no content
     if (!status) this.status = status = 204
@@ -442,20 +446,13 @@ export default class Response {
     }
 
     // status body
-    if (body == null) {
-      res.setHeader('Content-Length', Buffer.byteLength(body = this.message))
-      res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    if (body == null && message) {
+      this.set('Content-Type', 'text/plain; charset=utf-8')
+      this.set('Content-Length', Buffer.byteLength(body = message))
     }
 
     // finish
     res.end(body)
+    this._body = null
   }
-}
-
-function _skipDuplicates (all: string[], current: string): string[] {
-  if (!all.includes(current.toLowerCase())) {
-    all.push(current)
-  }
-
-  return all
 }
