@@ -41,7 +41,7 @@ export function createServer (options: any = {}, fn?: any) {
     options = {}
   }
 
-  var server = new Server(_newServer(options.tls), options)
+  var server = new Server(_createServer(options.tls), options)
 
   fn && server.on('request', fn)
 
@@ -54,6 +54,6 @@ export function createServer (options: any = {}, fn?: any) {
  * @param tls secure server options
  * @private
  */
-function _newServer (tls?: https.ServerOptions): http.Server | https.Server {
+function _createServer (tls?: https.ServerOptions): http.Server | https.Server {
   return tls ? https.createServer(tls) : http.createServer()
 }

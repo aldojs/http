@@ -46,10 +46,6 @@ export default class Server {
    */
   public start (port: number): Promise<void>
   public start (options: any) {
-    if (typeof options === 'number') {
-      options = { port: options }
-    }
-
     return new Promise<void>((resolve, reject) => {
       // attach the error listener
       this.native.once('error', reject)

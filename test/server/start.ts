@@ -4,21 +4,36 @@ import * as assert from 'assert'
 import { Server } from '../../src'
 import { createHttpServerStub } from '../support'
 
-describe('server.start(port)', () => {
+describe('server.start(argument)', () => {
+  var stub
+  var server
+
+  beforeEach(() => {
+    stub = createHttpServerStub()
+    server = new Server(stub)
+  })
+
   it('should return a promise', () => {
-    var stubServer = createHttpServerStub()
-    var server = new Server(stubServer)
     var result = server.start(123)
 
     assert(result instanceof Promise)
   })
 
-  it('should pass options to `listen` methos', () => {
-    var stubServer = createHttpServerStub()
-    var server = new Server(stubServer)
+  describe('when `argument` is a port number', () => {
+    it('should pass the port number to `listen` method', () => {
+      server.start(123)
 
-    server.start(123)
+      assert(stub.listen.calledOnceWith(123))
+    })
+  })
 
-    assert(stubServer.listen.calledOnceWith({ port: 123 }))
+  describe('when `argument` is a plain object', () => {
+    it('should pass the options to `listen` method', () => {
+      var options = { port: 123, host: 'localhost' }
+
+      server.start(options)
+
+      assert(stub.listen.calledWithMatch(options))
+    })
   })
 })

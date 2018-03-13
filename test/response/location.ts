@@ -1,6 +1,5 @@
 
-// set an expired cookie
-
+import 'mocha'
 import * as assert from 'assert'
 import { createResponse } from '../support'
 
