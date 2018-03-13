@@ -220,6 +220,19 @@ export default class Response {
   }
 
   /**
+   * Checks if the request is writable.
+   */
+  public get writable (): boolean {
+    // can't write any more after response finished
+    if (this.stream.finished) return false
+
+    // pending writable outgoing response
+    if (!this.stream.connection) return true
+
+    return this.stream.connection.writable
+  }
+
+  /**
    * Append `field` to the `Vary` header
    * 
    * @param field
@@ -412,7 +425,7 @@ export default class Response {
    */
   public send (content?: any): void {
     // already sent
-    if (this.stream.finished) return
+    if (!this.stream.writable) return
 
     // body
     if (content) this.body = content
