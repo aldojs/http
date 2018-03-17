@@ -156,11 +156,11 @@ export default class Response {
     if (typeof value === 'string') {
       if (!this.has('Content-Type')) {
         let type = HTML_TAG_RE.test(value) ? 'html' : 'plain'
-
+  
         this.set('Content-Type', `text/${type}; charset=utf-8`)
       }
-
-      this.set('Content-Length', Buffer.byteLength(value))
+      
+      this.length = Buffer.byteLength(value)
       return
     }
 
@@ -170,13 +170,22 @@ export default class Response {
         this.set('Content-Type', 'application/octet-stream')
       }
 
-      this.set('Content-Length', value.length)
+      this.length = value.length
+      return
+    }
+
+    // stream
+    if (_isStream(value)) {
+      if (!this.has('Content-Type')) {
+        this.set('Content-Type', 'application/octet-stream')
+      }
+
       return
     }
 
     // json
     this._body = value = JSON.stringify(value)
-    this.set('Content-Length', Buffer.byteLength(value))
+    this.length = Buffer.byteLength(value)
 
     if (!this.has('Content-Type')) {
       this.set('Content-Type', 'application/json; charset=utf-8')
@@ -324,7 +333,7 @@ export default class Response {
     if (typeof header === 'string') {
       this.stream.setHeader(header, value)
     }
-    else if (typeof header === 'object') {
+    else if (_isObject(header)) {
       for (let name in header) {
         this.stream.setHeader(name, header[name])
       }
@@ -432,27 +441,48 @@ export default class Response {
     if (!this.writable) return
 
     // body
-    if (content) this.body = content
+    if (content !== undefined) this.body = content
 
-    var { body, status, message, stream: res } = this
+    var { body, status, stream: res } = this
 
     // no content
-    if (!status) this.status = status = 204
+    if (!status) status = 204
 
     // ignore body
     if (statuses.empty[status]) {
+      this.body = null
       res.end()
       return
     }
 
+    // stream
+    if (_isStream(body)) return body.pipe(res)
+
     // status body
-    if (body == null && message) {
+    if (body == null) {
+      body = this.message || String(status)
+
       this.set('Content-Type', 'text/plain; charset=utf-8')
-      this.set('Content-Length', Buffer.byteLength(body = message))
+      this.length = Buffer.byteLength(body)
     }
 
     // finish
     res.end(body)
     this._body = null
   }
+}
+
+/**
+ * Check if the argument is a stream instance
+ * 
+ * @param stream
+ * @private
+ */
+function _isStream (stream: any): boolean {
+  return stream && typeof stream.pipe === 'function'
+}
+
+
+function _isObject (obj: any) {
+  return obj && typeof obj === 'object'
 }

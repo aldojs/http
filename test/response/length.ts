@@ -15,7 +15,7 @@ describe('response.length', () => {
   })
 
   describe('when Content-Length is not defined', () => {
-    describe('and a .body is set', () => {
+    describe('and a `.body` is set', () => {
       it('should return a number', () => {
         const response = createResponse()
 
@@ -33,7 +33,7 @@ describe('response.length', () => {
       })
     })
 
-    describe('and .body is not set', () => {
+    describe('and `.body` is not set', () => {
       it('should return undefined', () => {
         const response = createResponse()
 
