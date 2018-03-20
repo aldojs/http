@@ -1,8 +1,6 @@
 
 import 'mocha'
 import * as assert from 'assert'
-const Stream = require('stream')
-const Koa = require('../..')
 import { createRequest } from '../support'
 
 describe('req.ip', () => {
@@ -41,12 +39,4 @@ describe('req.ip', () => {
       })
     })
   })
-
-  // it('should be cached', () => {
-  //   const req = { socket: {} }
-  //   req.socket.remoteAddress = '127.0.0.2'
-  //   const request = createRequest(req)
-  //   req.socket.remoteAddress = '127.0.0.1'
-  //   assert.equal(request.ip, '127.0.0.2')
-  // })
 })
