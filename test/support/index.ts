@@ -1,19 +1,28 @@
 
+import * as http from 'http'
+import * as sinon from 'sinon'
 import { Request, Response } from '../../src'
 
-export function createRequest (req?: any, options?: { proxy: boolean }) {
+export function createRequest (req?: any, options?: { proxy: boolean }): Request {
   return new Request(_requestFrom(req), options)
 }
 
-export function createResponse (res?: any) {
+export function createResponse (res?: any): Response {
   return new Response(_responseFrom(res))
+}
+
+export function createHttpServerStub (): any {
+  return sinon.createStubInstance(http.Server)
+}
+
+export function noop () {
+  // do nothing
 }
 
 /**
  * IncomingMessage stub
  * 
- * @param {Object} req
- * @returns {Object}
+ * @param req
  * @private
  */
 function _requestFrom (req?: any): any {
@@ -23,8 +32,7 @@ function _requestFrom (req?: any): any {
 /**
  * ServerResponse stub
  * 
- * @param {Object} res
- * @returns {Object}
+ * @param res
  * @private
  */
 function _responseFrom (res?: any): any {

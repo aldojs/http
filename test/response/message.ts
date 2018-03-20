@@ -1,4 +1,5 @@
 
+import 'mocha'
 import * as assert from 'assert'
 import { createResponse } from '../support'
 
@@ -28,6 +29,19 @@ describe('response status message manipulation', () => {
       response.message = 'OK'
 
       assert.equal(response.stream.statusMessage, 'OK')
+    })
+  })
+
+  describe.skip('when headers already sent', () => {
+    it('should skip', () => {
+      let response = createResponse({
+        statusMessage: 'OK',
+        headersSent: true
+      })
+
+      response.message = 'Not OK'
+
+      assert.equal(response.message, 'OK')
     })
   })
 })

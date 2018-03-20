@@ -124,10 +124,10 @@ declare class Request {
   readonly type: string | undefined;
   readonly charset: string | undefined;
   readonly headers: http.IncomingHttpHeaders;
-  readonly cookie: { [name: string]: string | undefined; };
+  readonly cookies: { [name: string]: string | undefined; };
   readonly query: { [key: string]: string | string[] | undefined; };
 
-  constructor(req: http.IncomingMessage, options?: { proxy?: boolean });
+  constructor(req: http.IncomingMessage, options?: { proxy?: boolean; });
 
   has(header: string): boolean;
   is(...types: string[]): string | false;
