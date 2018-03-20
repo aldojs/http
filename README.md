@@ -25,7 +25,7 @@ declare interface ServerOptions {
 }
 ```
 
-### HTTP server
+### HTTP
 ```js
 const { createServer } = require('aldo-http')
 
@@ -52,7 +52,7 @@ const server = createServer((request, response) => {
 })
 ```
 
-### HTTPS server
+### HTTPS
 ```js
 const { readFileSync } = require('fs')
 const { createServer } = require('aldo-http')
@@ -80,6 +80,7 @@ const server = createServer(options, (request, response) => {
   })
 })
 ```
+
 ### Trust proxy
 To enable parsing `X-Forwarded-*` request headers, the `proxy` flag can be set to `true`
 
@@ -153,6 +154,8 @@ declare class Response {
   lastModified: Date;
   stream: http.ServerResponse;
 
+  readonly writable: boolean;
+  readonly headersSent: boolean;
   readonly headers: http.OutgoingHttpHeaders;
 
   constructor(res: http.ServerResponse, options?: {});
