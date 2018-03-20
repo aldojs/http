@@ -46,7 +46,7 @@ export default class Request {
   /**
    * URL pathname
    */
-  public  get url (): string {
+  public get url (): string {
     return url.parse(this.stream).pathname || '/'
   }
 
