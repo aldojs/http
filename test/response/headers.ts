@@ -105,6 +105,20 @@ describe('response headers manipulation', () => {
 
       assert.deepEqual(response.headers, {})
     })
+
+    describe('when an object is given', () => {
+      it('should reset the headers with the new values', () => {
+        let response = createResponse({
+          headers: { 'foo': 1 }
+        })
+        
+        assert.deepEqual(response.headers, { 'foo': 1 })
+  
+        response.reset({ 'bar': 2 })
+  
+        assert.deepEqual(response.headers, { 'bar': 2 })
+      })
+    })
   })
 
   describe('response.remove(name)', () => {

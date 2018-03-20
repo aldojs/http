@@ -278,6 +278,10 @@ export class Response {
      */
     readonly writable: boolean;
     /**
+     * Check if a header has been written to the socket
+     */
+    readonly headersSent: boolean;
+    /**
      * Get or set the response status code
      */
     status: number;

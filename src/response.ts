@@ -48,10 +48,17 @@ export default class Response {
   }
 
   /**
+   * Check if a header has been written to the socket
+   */
+  public get headersSent (): boolean {
+    return this.stream.headersSent
+  }
+
+  /**
    * Set the response status code
    */
   public set status (code: number) {
-    if (!this.stream.headersSent) {
+    if (!this.headersSent) {
       assert('number' === typeof code, 'The status code must be a number')
       assert(code >= 100 && code <= 999, 'Invalid status code')
 
@@ -73,7 +80,7 @@ export default class Response {
    * Set the response status message
    */
   public set message (value: string) {
-    this.stream.statusMessage = value
+    if (!this.headersSent) this.stream.statusMessage = value
   }
 
   /**
@@ -252,8 +259,7 @@ export default class Response {
    * @param field
    */
   public vary (field: string | string[]): this {
-    // skip
-    if (this.stream.headersSent) return this
+    if (this.headersSent) return this
 
     // match all
     if (field.includes('*')) {
@@ -330,12 +336,14 @@ export default class Response {
   
   public set (header: string, value: string | number | string[]): this
   public set (header: any, value?: any) {
-    if (typeof header === 'string') {
-      this.stream.setHeader(header, value)
-    }
-    else if (_isObject(header)) {
-      for (let name in header) {
-        this.stream.setHeader(name, header[name])
+    if (!this.headersSent) {
+      if (typeof header === 'string') {
+        this.stream.setHeader(header, value)
+      }
+      else if (_isObject(header)) {
+        for (let name in header) {
+          this.stream.setHeader(name, header[name])
+        }
       }
     }
 
@@ -357,7 +365,7 @@ export default class Response {
    * @param value
    * @param options
    */
-  public setCookie (name: string, value: string, options?: cookie.SerializeOptions) {
+  public setCookie (name: string, value: string, options?: cookie.SerializeOptions): this {
     return this.append('Set-Cookie', cookie.serialize(name, value, options))
   }
 
@@ -367,7 +375,7 @@ export default class Response {
    * @param name
    * @param options
    */
-  public clearCookie (name: string, options?: cookie.SerializeOptions) {
+  public clearCookie (name: string, options?: cookie.SerializeOptions): this {
     return this.setCookie(name, '', { expires: new Date(0), ...options })
   }
 
@@ -383,18 +391,22 @@ export default class Response {
    * @param header
    * @param value
    */
-  public append (header: string, value: string | string[]) {
-    if (this.stream.hasHeader(header)) {
-      let oldValue = this.stream.getHeader(header)
+  public append (header: string, value: string | string[]): this {
+    if (!this.headersSent) {
+      if (this.stream.hasHeader(header)) {
+        let oldValue = this.stream.getHeader(header)
 
-      if (!Array.isArray(oldValue)) {
-        oldValue = [String(oldValue)]
+        if (!Array.isArray(oldValue)) {
+          oldValue = [String(oldValue)]
+        }
+
+        value = oldValue.concat(value)
       }
 
-      value = oldValue.concat(value)
+      this.stream.setHeader(header, value)
     }
 
-    return this.set(header, value)
+    return this
   }
 
   /**
@@ -411,8 +423,11 @@ export default class Response {
    * 
    * @param header
    */
-  public remove (header: string) {
-    this.stream.removeHeader(header)
+  public remove (header: string): this {
+    if (!this.headersSent) {
+      this.stream.removeHeader(header)
+    }
+
     return this
   }
 
@@ -422,11 +437,13 @@ export default class Response {
    * @param headers
    */
   public reset (headers?: { [field: string]: string | number | string[] }): this {
-    for (let header of this.stream.getHeaderNames()) {
-      this.stream.removeHeader(header)
-    }
+    if (!this.headersSent) {
+      for (let header of this.stream.getHeaderNames()) {
+        this.stream.removeHeader(header)
+      }
 
-    if (headers) this.set(headers)
+      if (headers) this.set(headers)
+    }
 
     return this
   }
@@ -456,7 +473,10 @@ export default class Response {
     }
 
     // stream
-    if (_isStream(body)) return body.pipe(res)
+    if (_isStream(body)) {
+      body.pipe(res)
+      return
+    }
 
     // status body
     if (body == null) {
@@ -479,10 +499,14 @@ export default class Response {
  * @private
  */
 function _isStream (stream: any): boolean {
-  return stream && typeof stream.pipe === 'function'
+  return _isObject(stream) && typeof stream.pipe === 'function'
 }
 
-
+/**
+ * Check if the argument is an object
+ * 
+ * @param obj
+ */
 function _isObject (obj: any) {
   return obj && typeof obj === 'object'
 }
