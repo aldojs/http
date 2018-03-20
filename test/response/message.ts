@@ -32,7 +32,7 @@ describe('response status message manipulation', () => {
     })
   })
 
-  describe.skip('when headers already sent', () => {
+  describe('when headers already sent', () => {
     it('should skip', () => {
       let response = createResponse({
         statusMessage: 'OK',
