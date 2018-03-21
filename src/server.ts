@@ -6,17 +6,20 @@ import Request from './request'
 import Response from './response'
 import { setImmediate } from 'timers'
 
-export default class Server {
-  private _options: {}
+export default class {
+  private _options: { [x: string]: any }
+
+  public native: http.Server | https.Server
 
   /**
    * Initialize a Server instance
    * 
-   * @param native HTTP(S) server instance
+   * @param server HTTP(S) server instance
    * @param options
    */
-  public constructor (public native: http.Server | https.Server, options = {}) {
+  public constructor (server: http.Server | https.Server, options = {}) {
     this._options = options
+    this.native = server
   }
 
   /**
@@ -26,10 +29,7 @@ export default class Server {
    * @param fn listener
    */
   public on (event: string, fn: (...args: any[]) => void): this {
-    if (event === 'request') fn = this._wrap(fn)
-
-    this.native.on(event, fn)
-
+    this.native.on(event, this._wrap(event, fn))
     return this
   }
 
@@ -75,14 +75,22 @@ export default class Server {
   /**
    * Wrap the `request` event listener
    * 
-   * @param fn event listener
+   * @param event
+   * @param fn listener
    * @private
    */
-  private _wrap (fn: (...args: any[]) => void): (...args: any[]) => void {
+  private _wrap (event: string, fn: (...args: any[]) => void): (...args: any[]) => void {
     var opts = this._options
 
-    return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      setImmediate(fn, new Request(req, opts), new Response(res, opts))
+    switch (event) {
+      case 'request':
+      case 'checkContinue':
+      case 'checkExpectation':
+        return (req: http.IncomingMessage, res: http.ServerResponse) => {
+          setImmediate(fn, new Request(req, opts), new Response(res, opts))
+        }
     }
+
+    return () => { setImmediate(fn, ...arguments) }
   }
 }
