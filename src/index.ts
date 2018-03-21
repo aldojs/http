@@ -6,7 +6,7 @@ import Request from './request'
 import Response from './response'
 
 export interface Options {
-  proxy?: boolean
+  [x: string]: any
   tls?: https.ServerOptions
 }
 
