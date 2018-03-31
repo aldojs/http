@@ -508,6 +508,8 @@ export interface ServerOptions {
      * By default, its value is `false`.
      */
     proxy?: boolean
+
+    [x: string]: any
 }
 
 /**
