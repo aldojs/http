@@ -18,6 +18,8 @@ interface Response {
 
 type Listener = (request: http.IncomingMessage) => Response
 
+export { Server }
+
 /**
  * Create a HTTP(S) Server
  * 

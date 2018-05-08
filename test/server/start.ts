@@ -2,7 +2,7 @@
 import 'mocha'
 import * as assert from 'assert'
 import { Server } from '../../src'
-import { createHttpServerStub } from '../support'
+import { createHttpServerStub } from './_support'
 
 describe('server.start(argument)', () => {
   var stub
