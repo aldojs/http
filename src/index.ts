@@ -3,6 +3,8 @@ import * as http from 'http'
 import Server from './server'
 import * as https from 'https'
 import { Stream } from 'stream'
+import * as statuses from 'statuses'
+import { isStream, isString, isWritable, guessType } from './util'
 
 interface Options {
   // [x: string]: any
@@ -43,6 +45,7 @@ function _createServer (tls?: https.ServerOptions): Server {
 /**
  * Create the request listener wrapper
  * 
+ * @param fn
  * @private
  */
 function _wrapListener (fn: Listener) {
@@ -56,6 +59,7 @@ function _wrapListener (fn: Listener) {
  * 
  * @param fn
  * @param req
+ * @private
  */
 async function _tryListener (fn: (req: any) => Response, req: any): Promise<Response> {
   try {
@@ -73,31 +77,6 @@ async function _tryListener (fn: (req: any) => Response, req: any): Promise<Resp
 }
 
 /**
- * Check the given argument is a stream like
- * 
- * @private
- */
-function _isStream (obj: any): obj is Stream {
-  return obj && typeof obj.pipe === 'function'
-}
-
-/**
- * Check if the outgoing response is yet writable
- * 
- * @param res The server response stream
- * @private
- */
-function _isWritable (res: http.ServerResponse): boolean {
-  // can't write any more after response finished
-  if (res.finished) return false
-
-  // pending writable outgoing response
-  if (!res.connection) return true
-
-  return res.connection.writable
-}
-
-/**
  * Send the response and terminate the stream
  * 
  * @param res The response stream
@@ -105,7 +84,8 @@ function _isWritable (res: http.ServerResponse): boolean {
  * @private
  */
 function _send (res: http.ServerResponse, response: Response): void {
-  if (!_isWritable(res)) return
+  // writable
+  if (!isWritable(res)) return
 
   // no content
   if (response == null) {
@@ -115,20 +95,50 @@ function _send (res: http.ServerResponse, response: Response): void {
     return
   }
 
-  let { statusCode, statusMessage, body, headers } = response
-  
+  let { statusCode, statusMessage, body: content, headers = {} } = response
+
+  // status
   res.statusCode = statusCode
+  res.statusMessage = statusMessage || statuses[statusCode] || ''
 
-  if (statusMessage) res.statusMessage = statusMessage
+  // headers
+  for (let field in headers) {
+    res.setHeader(field, headers[field])
+  }
 
-  if (headers) {
-    for (let field in headers) {
-      res.setHeader(field, headers[field])
-    }
+  // ignore body
+  if (statuses.empty[statusCode]) {
+    res.removeHeader('Transfer-Encoding')
+    res.removeHeader('Content-Length')
+    res.removeHeader('Content-type')
+    res.end()
+    return
   }
 
   // status body
-  if (!body) body = statusMessage || String(statusCode)
+  if (content == null) {
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+    res.end(res.statusMessage || String(statusCode))
+    return
+  }
 
-  _isStream(body) ? body.pipe(res) : res.end(body)
+  // content type
+  if (!res.hasHeader('Content-Type')) {
+    res.setHeader('Content-Type', guessType(content))
+  }
+
+  // string or buffer
+  if (isString(content) || Buffer.isBuffer(content)) {
+    res.end(content)
+    return
+  }
+
+  // stream
+  if (isStream(content)) {
+    content.pipe(res)
+    return
+  }
+
+  // json
+  res.end(JSON.stringify(content))
 }
