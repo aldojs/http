@@ -2,23 +2,12 @@
 import * as http from 'http'
 import Server from './server'
 import * as https from 'https'
-import { Stream } from 'stream'
-import * as statuses from 'statuses'
-import { isStream, isString, isWritable } from './util'
+import { Listener } from './response'
 
 interface Options {
   // [x: string]: any
   tls?: https.ServerOptions
 }
-
-interface Response {
-  readonly body?: any
-  readonly statusCode: number
-  readonly statusMessage?: string
-  readonly headers?: { [x: string]: string | number | string[] }
-}
-
-type Listener = (request: http.IncomingMessage) => Response | Promise<Response>
 
 /**
  * Create a HTTP(S) Server
