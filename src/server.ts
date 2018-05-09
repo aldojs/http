@@ -2,7 +2,8 @@
 import * as net from 'net'
 import * as http from 'http'
 import * as https from 'https'
-import { setImmediate as defer } from 'timers'
+import { setImmediate } from 'timers'
+import { handle, Listener } from './response'
 
 export default class Server {
   /**
@@ -21,7 +22,10 @@ export default class Server {
    * @param fn listener
    */
   public on (event: string, fn: (...args: any[]) => any): this {
-    this.native.on(event, (...args) => defer(fn, ...args))
+    if (event === 'request') fn = _wrapListener(fn)
+
+    this.native.on(event, _defer(fn))
+
     return this
   }
 
@@ -54,4 +58,23 @@ export default class Server {
       })
     })
   }
+}
+
+/**
+ * Defer the function invocation to the next tick
+ * 
+ * @param fn
+ */
+function _defer (fn: (...args: any[]) => any) {
+  return (...args: any[]) => setImmediate(fn, ...args)
+}
+
+/**
+ * Create the request listener wrapper
+ * 
+ * @param fn
+ * @private
+ */
+function _wrapListener (fn: Listener) {
+  return (req: http.IncomingMessage, res: http.ServerResponse) => handle(fn, req, res)
 }

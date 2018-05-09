@@ -2,8 +2,6 @@
 import { Stream } from 'stream'
 import { ServerResponse } from 'http'
 
-const HTML_RE = /^\s*</
-
 /**
  * Check if the argument is a string
  * 
@@ -32,6 +30,15 @@ export function isStream (obj: any): obj is Stream {
 }
 
 /**
+ * Check if the argument is a buffer object
+ * 
+ * @param obj
+ */
+export function isBuffer (obj: any): obj is Buffer {
+  return Buffer.isBuffer(obj)
+}
+
+/**
  * Check if the outgoing response is yet writable
  * 
  * @param res The server response stream
@@ -44,25 +51,4 @@ export function isWritable (res: ServerResponse): boolean {
   if (!res.connection) return true
 
   return res.connection.writable
-}
-
-/**
- * Guess the content type, default to `application/json`
- * 
- * @param content The response body
- * @private
- */
-export function guessType (content: any): string {
-  // string
-  if (isString(content)) {
-    return `text/${HTML_RE.test(content) ? 'html' : 'plain'}; charset=utf-8`
-  }
-
-  // buffer or stream
-  if (Buffer.isBuffer(content) || isStream(content)) {
-    return 'application/octet-stream'
-  }
-
-  // json
-  return 'application/json; charset=utf-8'
 }

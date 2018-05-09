@@ -4,7 +4,7 @@ import Server from './server'
 import * as https from 'https'
 import { Stream } from 'stream'
 import * as statuses from 'statuses'
-import { isStream, isString, isWritable, guessType } from './util'
+import { isStream, isString, isWritable } from './util'
 
 interface Options {
   // [x: string]: any
@@ -12,15 +12,13 @@ interface Options {
 }
 
 interface Response {
-  statusCode: number
-  statusMessage?: string
-  body?: string | Buffer | Stream
-  headers?: { [x: string]: string | number | string[] }
+  readonly body?: any
+  readonly statusCode: number
+  readonly statusMessage?: string
+  readonly headers?: { [x: string]: string | number | string[] }
 }
 
-type Listener = (request: http.IncomingMessage) => Response
-
-export { Server }
+type Listener = (request: http.IncomingMessage) => Response | Promise<Response>
 
 /**
  * Create a HTTP(S) Server
@@ -29,7 +27,7 @@ export { Server }
  * @param options
  */
 export function createServer (fn: Listener, { tls }: Options = {}): Server {
-  return _createServer(tls).on('request', _wrapListener(fn))
+  return new Server(_createNativeServer(tls)).on('request', fn)
 }
 
 /**
@@ -38,107 +36,6 @@ export function createServer (fn: Listener, { tls }: Options = {}): Server {
  * @param tls Secure server options
  * @private
  */
-function _createServer (tls?: https.ServerOptions): Server {
-  return new Server(tls ? https.createServer(tls) : http.createServer())
-}
-
-/**
- * Create the request listener wrapper
- * 
- * @param fn
- * @private
- */
-function _wrapListener (fn: Listener) {
-  return (req: http.IncomingMessage, res: http.ServerResponse) => {
-    _tryListener(fn, req).then((response) => _send(res, response))
-  }
-}
-
-/**
- * Invoke the request listener and return the response
- * 
- * @param fn
- * @param req
- * @private
- */
-async function _tryListener (fn: (req: any) => Response, req: any): Promise<Response> {
-  try {
-    return await fn(req)
-  } catch (error) {
-    // file not found error
-    if (error.code === 'ENOENT') error.status = 404
-
-    return {
-      headers: error.headers || {},
-      statusCode: error.status || error.statusCode || 500,
-      body: error.expose ? error.message : 'Internal Server Error'
-    }
-  }
-}
-
-/**
- * Send the response and terminate the stream
- * 
- * @param res The response stream
- * @param response The response interface
- * @private
- */
-function _send (res: http.ServerResponse, response: Response): void {
-  // writable
-  if (!isWritable(res)) return
-
-  // no content
-  if (response == null) {
-    res.statusMessage = 'No Content'
-    res.statusCode = 204
-    res.end()
-    return
-  }
-
-  let { statusCode, statusMessage, body: content, headers = {} } = response
-
-  // status
-  res.statusCode = statusCode
-  res.statusMessage = statusMessage || statuses[statusCode] || ''
-
-  // headers
-  for (let field in headers) {
-    res.setHeader(field, headers[field])
-  }
-
-  // ignore body
-  if (statuses.empty[statusCode]) {
-    res.removeHeader('Transfer-Encoding')
-    res.removeHeader('Content-Length')
-    res.removeHeader('Content-type')
-    res.end()
-    return
-  }
-
-  // status body
-  if (content == null) {
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end(res.statusMessage || String(statusCode))
-    return
-  }
-
-  // content type
-  if (!res.hasHeader('Content-Type')) {
-    res.setHeader('Content-Type', guessType(content))
-  }
-
-  // string or buffer
-  if (isString(content) || Buffer.isBuffer(content)) {
-    res.end(content)
-    return
-  }
-
-  // stream
-  if (isStream(content)) {
-    content.pipe(res)
-    return
-  }
-
-  // json
-  res.end(JSON.stringify(content))
+function _createNativeServer (tls?: https.ServerOptions): http.Server | https.Server {
+  return tls ? https.createServer(tls) : http.createServer()
 }
