@@ -5,10 +5,7 @@ const { createServer } = require('..')
 const server = createServer(() => {
   return {
     statusCode: 200, // mandatory
-    body: "Hello world!",
-    headers: {
-      'Content-Type': 'text/plain'
-    }
+    body: "Hello world!"
   }
 })
 
