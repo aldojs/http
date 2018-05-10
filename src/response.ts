@@ -65,10 +65,10 @@ async function _getResponse (fn: Listener, req: any): Promise<Response> {
  * @private
  */
 function _send (res: http.ServerResponse, response: Response): void {
-  // writable
-  if (!isWritable(res)) return
-
   let { statusCode, statusMessage, body: content, headers = {} } = response
+
+  // not writable
+  if (!isWritable(res)) return
 
   // status
   res.statusCode = statusCode
@@ -80,7 +80,7 @@ function _send (res: http.ServerResponse, response: Response): void {
   }
 
   // ignore body
-  if (statuses.empty[statusCode]) {
+  if (statuses.empty[statusCode] || content == null) {
     res.removeHeader('Transfer-Encoding')
     res.removeHeader('Content-Length')
     res.removeHeader('Content-type')
@@ -88,22 +88,9 @@ function _send (res: http.ServerResponse, response: Response): void {
     return
   }
 
-  // status body
-  if (content == null) {
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8')
-    res.end(res.statusMessage || String(statusCode))
-    return
-  }
-
   // content type
   if (!res.hasHeader('Content-Type')) {
     res.setHeader('Content-Type', _guessType(content))
-  }
-
-  // string or buffer
-  if (isString(content) || isBuffer(content)) {
-    res.end(content)
-    return
   }
 
   // stream
@@ -113,7 +100,17 @@ function _send (res: http.ServerResponse, response: Response): void {
   }
 
   // json
-  res.end(JSON.stringify(content))
+  if (!isString(content) && !isBuffer(content)) {
+    content = JSON.stringify(content)
+  }
+
+  // content length
+  if (!res.hasHeader('Content-Length')) {
+    res.setHeader('Content-Length', Buffer.byteLength(content))
+  }
+
+  // finish
+  res.end(content)
 }
 
 /**
