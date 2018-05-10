@@ -12,6 +12,15 @@ export function isString (obj: any): obj is string {
 }
 
 /**
+ * Check if the status code is a valid number
+ * 
+ * @param status
+ */
+export function isValid (status: any): status is number {
+  return typeof status === 'number' && status >= 100 && status <= 999
+}
+
+/**
  * Check if the argument is an object
  * 
  * @param obj

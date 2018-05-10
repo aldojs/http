@@ -1,7 +1,8 @@
 
 import * as http from 'http'
+import * as assert from 'assert'
 import * as statuses from 'statuses'
-import { isStream, isString, isWritable, isBuffer } from './util'
+import { isStream, isString, isWritable, isBuffer, isObject, isValid } from './util'
 
 const HTML_TAG_RE = /^\s*</
 
@@ -34,15 +35,24 @@ export function handle (fn: Listener, req: http.IncomingMessage, res: http.Serve
  */
 async function _getResponse (fn: Listener, req: any): Promise<Response> {
   try {
-    return await fn(req)
+    let response = await fn(req)
+
+    assert(isObject(response), 'The response must be an object')
+    assert(isValid(response.statusCode), 'The status code is invalid')
+
+    return response
   } catch (error) {
-    // file not found error
-    if (error.code === 'ENOENT') error.status = 404
+    // TODO: should log the error somewhere
+
+    let status = error.status || error.statusCode
+
+    // support ENOENT
+    if (error.code === 'ENOENT') status = 404
 
     return {
-      headers: error.headers || {},
-      statusCode: error.status || error.statusCode || 500,
-      body: error.expose ? error.message : 'Internal Server Error'
+      statusCode: isValid(status) ? status : 500,
+      body: error.expose ? error.message : 'Internal Server Error',
+      headers: error.headers || { 'Content-Type': 'text/plain; charset=utf-8' }
     }
   }
 }
@@ -57,14 +67,6 @@ async function _getResponse (fn: Listener, req: any): Promise<Response> {
 function _send (res: http.ServerResponse, response: Response): void {
   // writable
   if (!isWritable(res)) return
-
-  // no content
-  if (response == null) {
-    res.statusMessage = 'No Content'
-    res.statusCode = 204
-    res.end()
-    return
-  }
 
   let { statusCode, statusMessage, body: content, headers = {} } = response
 
