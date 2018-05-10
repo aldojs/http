@@ -2,25 +2,14 @@
 `Aldo-http` is an enhanced HTTP `createServer` module for Node.js.
 It provides a decorated versions of `IncomingMessage` and `ServerResponse` objects which are mostly similar to `Koa`'s request and response objects.
 
-## Installation
-```sh
-npm add aldo-http
-```
-
-## Testing
-```sh
-npm test
-```
-
 ## Usage
 
 `Aldo-http` exposes `createServer` function to create both HTTP and HTTPS servers.
 
 ```ts
-declare function createServer(options?: ServerOptions, fn?: RequestListener): Server;
+declare function createServer(fn: RequestListener, options?: ServerOptions): Server;
 
 declare interface ServerOptions {
-  proxy?: boolean;
   tls?: https.ServerOptions;
 }
 ```
@@ -29,15 +18,19 @@ declare interface ServerOptions {
 ```js
 const { createServer } = require('aldo-http')
 
-// make a new HTTP server
-const server = createServer((request, response) => {
-  // Set the `Content-Type` and `Content-Length` headers,
-  // write `Hello world!` response body
-  // Set the status code to `200 OK`
-  // and finally, terminate the response stream
-  response.send('Hello world!')
-})
+const listener = (request) => {
+  return {
+    status: 200,
+    body: 'Hello world!'
+  }
+}
 
+// make a new HTTP server
+const server = createServer(listener)
+
+
+
+// 
 (async () => {
   try {
     // start listening on port 3000
@@ -102,7 +95,7 @@ const server = createServer({ proxy: true }, (request, response) => {
 The `request` event listener can be a simple or an async function.
 It will reveice a `Request` and a `Response` instances instead of the default `IncompingMessage` and `ServerResponse` objects.
 ```ts
-declare type RequestListener = (req: Request, res: Response) => void;
+declare type RequestListener = (req: http.IncomingMessage) => Response;
 ```
 
 ## Request
