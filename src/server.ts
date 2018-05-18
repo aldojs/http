@@ -50,7 +50,7 @@ export class Server {
    * 
    * @public
    */
-  public start (portOrOptions: number | net.ListenOptions): Promise<void> {
+  public start (portOrOptions?: number | net.ListenOptions): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       // attach the error listener
       this.native.once('error', reject)
