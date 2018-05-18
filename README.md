@@ -1,51 +1,31 @@
 
 `Aldo-http` is an enhanced HTTP `createServer` module for Node.js.
-It provides a decorated versions of `IncomingMessage` and `ServerResponse` objects which are mostly similar to `Koa`'s request and response objects.
 
-## Usage
+```js
+const { createServer } = require('aldo-http')
 
-`Aldo-http` exposes `createServer` function to create both HTTP and HTTPS servers.
+// server
+const server = createServer(() => "Hello world!")
+
+// start
+server.start(3000)
+```
+
+## createServer
 
 ```ts
-declare function createServer(fn: RequestListener, options?: ServerOptions): Server;
+declare function createServer (options: Options, fn: RequestHandler): Server;
+declare function createServer (fn: RequestHandler): Server;
+declare function createServer (options: Options): Server;
+declare function createServer (): Server;
 
-declare interface ServerOptions {
+declare interface Options {
   tls?: https.ServerOptions;
 }
 ```
 
-### HTTP
-```js
-const { createServer } = require('aldo-http')
+### HTTPS server
 
-const listener = (request) => {
-  return {
-    status: 200,
-    body: 'Hello world!'
-  }
-}
-
-// make a new HTTP server
-const server = createServer(listener)
-
-
-
-// 
-(async () => {
-  try {
-    // start listening on port 3000
-    await server.start(3000)
-
-    console.log('The server is ready')
-  }
-  catch (error) {
-    // log the error
-    console.error(error)
-  }
-})
-```
-
-### HTTPS
 ```js
 const { readFileSync } = require('fs')
 const { createServer } = require('aldo-http')
@@ -60,120 +40,61 @@ const options = {
 }
 
 // make a HTTPS server using the TLS options
-const server = createServer(options, (request, response) => {
-  response.send('Hello world!')
-})
+const server = createServer(options, () => 'Hello world!')
 
-(async () => {
-  // start listening on port 443
-  await server.start({
-    port: 443,
-    exclusive: true,
-    host: 'example.com'
-  })
+server.start({
+  port: 443,
+  exclusive: true,
+  host: 'example.com'
 })
 ```
 
-### Trust proxy
-To enable parsing `X-Forwarded-*` request headers, the `proxy` flag can be set to `true`
+### Request handler
 
-```js
-const { createServer } = require('aldo-http')
+The `request` event handler could be a common or an async function.
 
-// make a new HTTP server
-const server = createServer({ proxy: true }, (request, response) => {
-  response.send('Hello world!')
-})
+Each handler will receive the `http.IncomingMessage` object as a single input, and could return anything as a response.
 
-(async () => {
-  // start listening on port 3000
-  await server.start(3000)
-})
-```
-
-### Request listener callback
-The `request` event listener can be a simple or an async function.
-It will reveice a `Request` and a `Response` instances instead of the default `IncompingMessage` and `ServerResponse` objects.
 ```ts
-declare type RequestListener = (req: http.IncomingMessage) => Response;
+declare type RequestHandler = (request: http.IncomingMessage) => any;
 ```
 
-## Request
-The request is an `IncomingMessage` decorator.
-```ts
-declare class Request {
-  body: any;
-  stream: http.IncomingMessage;
+The handler's output could be anything:
+- `streams` will be piped
+- `strings` and `buffers` will be sent as is
+- `nulls` and `undefined` values will be considered as empty responses (Status code 204)
+- anything else will be serialized as `JSON`.
 
-  readonly url: string; // URL pathname
-  readonly ips: string[];
-  readonly method: string;
-  readonly length: number;
-  readonly origin: string;
-  readonly secure: boolean;
-  readonly protocol: string;
-  readonly querystring: string;
-  readonly ip: string | undefined;
-  readonly host: string | undefined;
-  readonly type: string | undefined;
-  readonly charset: string | undefined;
-  readonly headers: http.IncomingHttpHeaders;
-  readonly cookies: { [name: string]: string | undefined; };
-  readonly query: { [key: string]: string | string[] | undefined; };
-
-  constructor(req: http.IncomingMessage, options?: { proxy?: boolean; });
-
-  has(header: string): boolean;
-  is(...types: string[]): string | false;
-  get(header: string): string | string[] | undefined;
-  accept(...types: string[]): string | false | string[];
-  acceptCharset(...args: string[]): string | false | string[];
-  acceptEncoding(...args: string[]): string | false | string[];
-  acceptLanguage(...args: string[]): string | false | string[];
-}
-```
+To get more control over the response to send, [Response](#response) instances could be returned.
 
 ## Response
-The response is a `ServerResponse` decorator.
+
+The response instance let you construct a complex response (status code, body and headers)
+
 ```ts
 declare class Response {
   body: any;
-  etag: string;
-  type: string;
-  length: number;
-  status: number;
-  message: string;
-  location: string;
-  lastModified: Date;
-  stream: http.ServerResponse;
+  statusCode: number;
+  statusMessage: string;
+  headers: http.OutgoingHttpHeaders;
 
-  readonly writable: boolean;
-  readonly headersSent: boolean;
-  readonly headers: http.OutgoingHttpHeaders;
+  constructor(body?: any);
 
-  constructor(res: http.ServerResponse, options?: {});
-
-  send(content?: any): void;
+  type(value: string): this;
+  etag(value: string): this;
+  length(value: number): this;
+  location(url: string): this;
   has(header: string): boolean;
   remove(header: string): this;
-  vary(field: string | string[]): this;
-  is(...types: string[]): string | false;
+  setCookie(value: string): this;
+  vary(...headers: string[]): this;
+  send(res: http.ServerResponse): void;
+  lastModified(value: string | Date): this;
+  status(code: number, message?: string): this;
   append(header: string, value: string | string[]): this;
   get(header: string): string | number | string[] | undefined;
   set(header: string, value: string | number | string[]): this;
   set(headers: { [field: string]: string | number | string[]; }): this;
   reset(headers?: { [field: string]: string | number | string[]; }): this;
-  setCookie(name: string, value: string, options?: SerializeCookieOptions): this;
-  clearCookie(name: string, options?: SerializeCookieOptions): this;
-}
-
-declare interface SerializeCookieOptions {
-  path?: string;
-  expires?: Date;
-  domain?: string;
-  maxAge?: number;
-  secure?: boolean;
-  httpOnly?: boolean;
-  sameSite?: boolean | 'lax' | 'strict';
 }
 ```
