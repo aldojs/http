@@ -1,7 +1,7 @@
 {
   "name": "aldo-http",
   "version": "1.0.0-alpha",
-  "description": "Enhanced HTTP createServer module for Node.js",
+  "description": "Enhanced HTTP `createServer` module for Node.js",
   "main": "lib/index.js",
   "engines": {
     "node": ">=8"
@@ -19,6 +19,7 @@
     "url": "git+https://github.com/aldojs/http.git"
   },
   "keywords": [
+    "aldo",
     "http",
     "server",
     "request",
