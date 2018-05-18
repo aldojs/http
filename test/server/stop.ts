@@ -1,7 +1,7 @@
 
 import 'mocha'
 import * as assert from 'assert'
-import Server from '../../src/server'
+import { Server } from '../../src'
 import { createHttpServerStub } from './_support'
 
 describe('server.stop()', () => {
