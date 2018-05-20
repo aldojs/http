@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "tsc && npm test && npm test",
+    "prepublishOnly": "tsc && npm test",
     "test": "mocha -R dot -r ts-node/register \"test/**/*.ts\""
   },
   "repository": {
