@@ -85,43 +85,33 @@ export class Server {
    */
   private _wrap (handler: RequestHandler): (...args: any[]) => any {
     return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      this._getResponse(handler, req).then((response) => response.send(res))
-    }
-  }
+      new Promise<any>((resolve) => resolve(handler(req))).catch((err) => {
+        // normalize
+        if (! (err instanceof Error)) {
+          err = new Error(`Non-error thrown: "${is(err)}"`)
+        }
 
-  /**
-   * Invoke the request handler and return the response
-   * 
-   * @param fn The request handler
-   * @param request The incoming message
-   * @private
-   */
-  private async _getResponse (fn: RequestHandler, request: Request) {
-    try {
-      let output = await fn(request)
+        // delegate
+        this.native.emit('error', err)
 
-      if (output instanceof Response) return output
+        let status = err.status || err.statusCode
+        let body = err.expose ? err.message : 'Internal Server Error'
 
-      return new Response(output)
-    } catch (err) {
-      // normalize
-      if (! (err instanceof Error)) {
-        err = new Error(`Non-error thrown: "${is(err)}"`)
-      }
+        // support ENOENT
+        if (err.code === 'ENOENT') status = 404
 
-      // delegate
-      this.native.emit('error', err)
+        return new Response(body)
+          .status(_isValid(status) ? status : 500)
+          .type('text/plain; charset=utf-8')
+          .set(err.headers || {})
+      })
+      .then((response) => {
+        if (! (response instanceof Response)) {
+          response = new Response(response)
+        }
 
-      let status = err.status || err.statusCode
-      let body = err.expose ? err.message : 'Internal Server Error'
-
-      // support ENOENT
-      if (err.code === 'ENOENT') status = 404
-
-      return new Response(body)
-        .status(_isValid(status) ? status : 500)
-        .type('text/plain; charset=utf-8')
-        .set(err.headers || {})
+        response.send(res)
+      })
     }
   }
 }
