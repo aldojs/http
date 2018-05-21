@@ -92,7 +92,9 @@ export class Server {
         }
 
         // delegate
-        this.native.emit('error', err)
+        if (this.native.listenerCount('error')) {
+          this.native.emit('error', err)
+        }
 
         let status = err.status || err.statusCode
         let body = err.expose ? err.message : 'Internal Server Error'
