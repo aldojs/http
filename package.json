@@ -1,6 +1,6 @@
 {
   "name": "aldo-http",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "description": "Enhanced HTTP `createServer` module for Node.js",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
