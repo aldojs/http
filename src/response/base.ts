@@ -1,10 +1,8 @@
 
 import { Stream } from 'stream'
-import * as assert from 'assert'
 import is from '@sindresorhus/is'
-import * as statuses from 'statuses'
 import { contentType } from 'mime-types'
-import { OutgoingHttpHeaders, ServerResponse } from 'http'
+import { OutgoingHttpHeaders, ServerResponse, IncomingMessage } from 'http'
 
 export class Response {
   /**
@@ -30,11 +28,13 @@ export class Response {
   /**
    * Initialize a new response builder
    * 
-   * @param content
+   * @param body The response body
+   * @constructor
+   * @public
    */
-  public constructor (content?: any) {
-    if (content != null) {
-      this.body = content
+  public constructor (body: any) {
+    if (body != null) {
+      this.body = body
       this.statusCode = 200
       this.statusMessage = 'OK'
     }
@@ -44,16 +44,20 @@ export class Response {
    * Set the response status code
    * 
    * @param code The status code
-   * @param message The status message
+   * @param reasonPhase The status message
+   * @throws `TypeError` if the status code is not a number
+   * @throws `RangeError` if the status code is smaller than 100 or larger than 999
    */
-  public status (code: number, message?: string): this {
-    assert('number' === typeof code, 'The status code must be a number')
-    assert(code >= 100 && code <= 999, 'Invalid status code')
+  public status (code: number, reasonPhase = ''): this {
+    if (!is.number(code)) {
+      throw new TypeError('The status code must be a number')
+    }
 
-    // no content status code
-    if (this.body && statuses.empty[code]) this.body = null
+    if (code < 100 || code > 999) {
+      throw new RangeError('The status code should be between 100 and 999')
+    }
 
-    this.statusMessage = message || statuses[code] || ''
+    this.statusMessage = reasonPhase
     this.statusCode = code
 
     return this
@@ -75,11 +79,9 @@ export class Response {
   public type (value: string): this {
     let type = contentType(value)
 
-    if (type) {
-      this.set('Content-Type', type)
-    }
+    if (!type) return this
 
-    return this
+    return this.set('Content-Type', type)
   }
 
   /**
@@ -265,100 +267,49 @@ export class Response {
    * @public
    */
   public send (res: ServerResponse): void {
-    let { statusCode, statusMessage, body: content, headers } = this
+    // ignore
+    if (!this._isWritable(res)) return
 
-    // not writable
-    if (!_isWritable(res)) return
+    // head
+    this._writeHeaders(res)
+
+    // body
+    res.end(this.body)
+  }
+
+  /**
+   * Write the status code and the headers
+   * 
+   * @param res The outgoing response
+   * @private
+   */
+  protected _writeHeaders (res: ServerResponse): void {
+    // ignore
+    if (res.headersSent) return
 
     // status
-    res.statusCode = statusCode
-    res.statusMessage = statusMessage || statuses[statusCode] || ''
+    res.statusCode = this.statusCode
+    res.statusMessage = this.statusMessage
 
     // headers
-    for (let field in headers) {
-      res.setHeader(field, headers[field] as any)
+    for (let field in this.headers) {
+      res.setHeader(field, this.headers[field] as any)
     }
-
-    // ignore body
-    if (statuses.empty[statusCode] || content == null) {
-      res.removeHeader('Transfer-Encoding')
-      res.removeHeader('Content-Length')
-      res.removeHeader('Content-type')
-      res.end()
-      return
-    }
-
-    // content type
-    if (!res.hasHeader('Content-Type')) {
-      res.setHeader('Content-Type', _guessType(content))
-    }
-
-    // stream
-    if (_isStream(content)) {
-      content.pipe(res)
-      return
-    }
-
-    // json
-    if (!is.string(content) && !is.buffer(content)) {
-      content = JSON.stringify(content)
-    }
-
-    // content length
-    if (!res.hasHeader('Content-Length')) {
-      res.setHeader('Content-Length', Buffer.byteLength(content))
-    }
-
-    // finish
-    res.end(content)
-  }
-}
-
-/**
- * Check if the outgoing response is yet writable
- * 
- * @param res The server response stream
- * @private
- */
-function _isWritable (res: ServerResponse): boolean {
-  // can't write any more after response finished
-  if (res.finished) return false
-
-  // pending writable outgoing response
-  if (!res.connection) return true
-
-  return res.connection.writable
-}
-
-const HTML_TAG_RE = /^\s*</
-
-/**
- * Guess the content type, default to `application/json`
- * 
- * @param content The response body
- * @private
- */
-function _guessType (content: any): string {
-  // string
-  if (is.string(content)) {
-    return `text/${HTML_TAG_RE.test(content) ? 'html' : 'plain'}; charset=utf-8`
   }
 
-  // buffer or stream
-  if (is.buffer(content) || _isStream(content)) {
-    return 'application/octet-stream'
+  /**
+   * Check if the outgoing response is yet writable
+   * 
+   * @param res The server response stream
+   * @private
+   */
+  protected _isWritable (res: ServerResponse): boolean {
+    // can't write any more after response finished
+    if (res.finished === true) return false
+  
+    // pending writable outgoing response
+    if (!res.connection) return true
+  
+    return res.connection.writable
   }
-
-  // json
-  return 'application/json; charset=utf-8'
-}
-
-/**
- * Check if the argument is a stream instance
- * 
- * @param obj
- * @private
- */
-function _isStream (obj: any): obj is Stream {
-  return obj && typeof obj.pipe === 'function'
 }
