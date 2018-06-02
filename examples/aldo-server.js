@@ -1,5 +1,5 @@
 
-const { createServer } = require('..')
+const { createServer } = require('aldo-http')
 
 // server
 const server = createServer(() => "Hello world!")
