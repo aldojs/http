@@ -4,7 +4,7 @@ import * as https from 'https'
 import is from '@sindresorhus/is'
 import { Server, RequestHandler } from './server'
 
-export interface createServerOptions {
+export type CreateServerOptions = {
   tls?: https.ServerOptions
 }
 
@@ -15,7 +15,7 @@ export interface createServerOptions {
  * @param handler The request handler
  * @public
  */
-export function createServer (options: createServerOptions, handler: RequestHandler): Server
+export function createServer (options: CreateServerOptions, handler: RequestHandler): Server
 
 /**
  * Create a HTTP(S) Server
@@ -23,7 +23,7 @@ export function createServer (options: createServerOptions, handler: RequestHand
  * @param options The `Server` options
  * @public
  */
-export function createServer (options: createServerOptions): Server
+export function createServer (options: CreateServerOptions): Server
 
 /**
  * Create a HTTP(S) Server

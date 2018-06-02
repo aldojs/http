@@ -3,44 +3,101 @@ import * as net from 'net'
 import * as http from 'http'
 import * as https from 'https'
 import is from '@sindresorhus/is'
-import { setImmediate } from 'timers'
-import { Response } from './response'
+import { createResponse, createErrorResponse } from './response'
 
-export type RequestHandler = (request: Request) => any
+export type RequestHandler = (req: IRequest) => any
 
 export type EventListener = (...args: any[]) => any
 
-export type Request = http.IncomingMessage
+export interface IRequest extends http.IncomingMessage {
+  // 
+}
 
+/**
+ * High level server for request handling
+ */
 export class Server {
   /**
-   * Initialize a `Server` instance
+   * The internal server
    * 
-   * @param native The native HTTP(S) server
+   * @protected
    */
-  public constructor (public native: http.Server | https.Server) {
+  protected _server: http.Server | https.Server
+
+  /**
+   * Create a new server instance
+   * 
+   * @param server The HTTP(S) native server
+   * @constructor
+   * @public
+   */
+  public constructor (server: http.Server | https.Server) {
+    this._server = server
   }
 
   /**
-   * Add a request handler
+   * Add a handler for the `request` event
    * 
+   * @param event The `request` event
+   * @param handler The `request` handler
    * @public
    */
-  public on (event: 'request', handler: RequestHandler): this;
+  public on (event: 'request', handler: RequestHandler): this
 
   /**
    * Add a `listener` for the given `event`
    * 
    * @param event The event name
+   * @param listener The event listener
+   * @public
+   */
+  public on (event: string, listener: EventListener): this
+
+  public on (event: string, fn: EventListener) {
+    if (event === 'request') fn = this._wrap(fn)
+
+    // attach the listener
+    this._server.on(event, _defer(fn))
+
+    return this
+  }
+
+  /**
+   * Add a one time `listener` for the given `event`
+   * 
+   * @param event The event name
    * @param fn The event listener
    * @public
    */
-  public on (event: string, fn: EventListener): this;
+  public once (event: string, fn: EventListener): this {
+    this._server.once(event, _defer(fn))
+    return this
+  }
 
-  public on (event: string, handler: any) {
-    if (event === 'request') handler = this._wrap(handler)
+  /**
+   * Trigger the `event` with `args`
+   * 
+   * @param event The event name
+   * @param args The optional arguments to pass
+   * @public
+   */
+  public emit (event: string, ...args: any[]): boolean {
+    return this._server.emit(event, ...args)
+  }
 
-    this.native.on(event, _defer(handler))
+  /**
+   * Stop listening to the given `event`
+   * 
+   * @param event The event name
+   * @param fn The event listener
+   * @public
+   */
+  public off (event?: string, fn?: EventListener): this {
+    if (event == null || fn == null) {
+      this._server.removeAllListeners(event)
+    } else {
+      this._server.removeListener(event, fn)
+    }
 
     return this
   }
@@ -51,14 +108,17 @@ export class Server {
    * @public
    */
   public start (portOrOptions?: number | net.ListenOptions): Promise<void> {
+    // attach a default error handler
+    if (!this._server.listenerCount('error')) this.on('error', _onError)
+
     return new Promise<void>((resolve, reject) => {
       // attach the error listener
-      this.native.once('error', reject)
+      this._server.once('error', reject)
 
       // listening
-      this.native.listen(portOrOptions, () => {
+      this._server.listen(portOrOptions, () => {
         // remove the unecessary error listener
-        this.native.removeListener('error', reject)
+        this._server.removeListener('error', reject)
 
         // resolve the promise
         resolve()
@@ -73,49 +133,60 @@ export class Server {
    */
   public stop (): Promise<void> {
     return new Promise<void>((resolve, reject) => {
-      this.native.close((e: any) => e ? reject(e) : resolve())
+      this._server.close((e: any) => e ? reject(e) : resolve())
     })
   }
 
   /**
-   * Wrap the request event listener
+   * Wrap the request handler
    * 
-   * @param handler The request event listener
-   * @private
+   * @param handler The request handler
+   * @protected
    */
-  private _wrap (handler: RequestHandler): (...args: any[]) => any {
-    return (req: http.IncomingMessage, res: http.ServerResponse) => {
-      new Promise<any>((resolve) => resolve(handler(req))).catch((err) => {
+  protected _wrap (handler: EventListener): EventListener {
+    return async (req: http.IncomingMessage, res: http.ServerResponse) => {
+      try {
+        let output = await handler(req)
+
+        let response = createResponse(output)
+
+        await response.send(res)
+      } catch (err) {
         // normalize
         if (! (err instanceof Error)) {
           err = new Error(`Non-error thrown: "${is(err)}"`)
         }
 
-        // delegate
-        if (this.native.listenerCount('error')) {
-          this.native.emit('error', err)
-        }
-
-        let status = err.status || err.statusCode
-        let body = err.expose ? err.message : 'Internal Server Error'
-
         // support ENOENT
-        if (err.code === 'ENOENT') status = 404
-
-        return new Response(body)
-          .status(_isValid(status) ? status : 500)
-          .type('text/plain; charset=utf-8')
-          .set(err.headers || {})
-      })
-      .then((response) => {
-        if (! (response instanceof Response)) {
-          response = new Response(response)
+        if (err.code === 'ENOENT') {
+          err.expose = true
+          err.status = 404
         }
 
-        response.send(res)
-      })
+        // send
+        createErrorResponse(err).send(res)
+
+        // delegate
+        this.emit('error', err)
+      }
     }
   }
+}
+
+/**
+ * The default `error` event listener
+ * 
+ * @param err The error object
+ * @private
+ */
+function _onError (err: any): void {
+  if (err.status === 404 || err.expose) return
+
+  let msg: string = err.stack || err.toString()
+
+  console.error()
+  console.error(msg.replace(/^/gm, '   '))
+  console.error()
 }
 
 /**
@@ -124,16 +195,6 @@ export class Server {
  * @param fn The event listener
  * @private
  */
-function _defer (fn: EventListener) {
+function _defer (fn: EventListener): EventListener {
   return (...args: any[]) => setImmediate(fn, ...args)
-}
-
-/**
- * Check if the status code is a valid number
- * 
- * @param status
- * @private
- */
-function _isValid (status: any): status is number {
-  return typeof status === 'number' && status >= 100 && status <= 999
 }
