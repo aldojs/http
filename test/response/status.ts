@@ -8,7 +8,7 @@ describe('response.status(code, message)', () => {
     it('should set the code', () => {
       let response = createResponse()
   
-      response.status(200)
+      response.status(200, 'OK')
   
       assert.equal(response.statusCode, 200, "Status code should equal '200'")
       assert.equal(response.statusMessage, 'OK', "Status message should equal 'OK'")

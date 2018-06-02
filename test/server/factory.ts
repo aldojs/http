@@ -16,16 +16,16 @@ describe('createServer()', () => {
   })
 
   it('should set the listener', () => {
-    let server = createServer(noop as any)
+    let server = createServer(noop) as any
 
-    assert.equal(server.native.listenerCount('request'), 1)
+    assert.equal(server._server.listenerCount('request'), 1)
   })
 
   describe('when `tls` options are provided', () => {
     it('should create a HTTPS server', () => {
-      var server = createServer({ tls: {} })
+      var server = createServer({ tls: {} }) as any
 
-      assert(server.native instanceof https.Server)
+      assert(server._server instanceof https.Server)
     })
   })
 })
