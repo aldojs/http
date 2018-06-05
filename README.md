@@ -51,12 +51,14 @@ server.start({
 
 ### Request handler
 
-The `request` event handler could be a common or an async function.
+The `request` event handler could be a common function, an async function or an object with a `handle` method.
 
 Each handler will receive the `http.IncomingMessage` object as a request, and could return anything as a response.
 
 ```ts
-declare type RequestHandler = (request: http.IncomingMessage) => any;
+declare type HandlerFn = (request: http.IncomingMessage) => any;
+
+declare type RequestHandler = HandlerFn | { handle: HandlerFn };
 ```
 
 The handler's output could be anything:
