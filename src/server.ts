@@ -5,7 +5,11 @@ import * as https from 'https'
 import is from '@sindresorhus/is'
 import { createResponse, createErrorResponse } from './response'
 
-export type RequestHandler = (req: IRequest) => any
+export type RequestHandler = RequestHandlerFn | {
+  handle: RequestHandlerFn
+}
+
+export type RequestHandlerFn = (req: IRequest) => any
 
 export type EventListener = (...args: any[]) => any
 
@@ -146,7 +150,7 @@ export class Server {
   protected _wrap (handler: EventListener): EventListener {
     return async (req: http.IncomingMessage, res: http.ServerResponse) => {
       try {
-        let output = await handler(req)
+        let output = await _invoke(handler, req)
 
         let response = createResponse(output)
 
@@ -197,4 +201,15 @@ function _onError (err: any): void {
  */
 function _defer (fn: EventListener): EventListener {
   return (...args: any[]) => setImmediate(fn, ...args)
+}
+
+/**
+ * Invoke the request handler and return the output
+ * 
+ * @param handler 
+ * @param request 
+ * @private
+ */
+function _invoke (handler: RequestHandler, request: IRequest): any {
+  return is.function_(handler) ? handler(request) : handler.handle(request)
 }
