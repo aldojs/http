@@ -41,7 +41,7 @@ export function createServer (handler: RequestHandler): Server
 export function createServer (): Server
 
 export function createServer (options: any = {}, fn?: any) {
-  if (is.function_(options)) {
+  if (_isRequestHandler(options)) {
     fn = options
     options = {}
   }
@@ -61,4 +61,14 @@ export function createServer (options: any = {}, fn?: any) {
  */
 function _createNativeServer (tls?: https.ServerOptions): http.Server | https.Server {
   return tls ? https.createServer(tls) : http.createServer()
+}
+
+/**
+ * Check whether the given argument is a valid request handler
+ * 
+ * @param arg 
+ * @private
+ */
+function _isRequestHandler (arg: any): arg is RequestHandler {
+  return is.function_(arg) || is.function_(arg.handle)
 }
