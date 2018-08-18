@@ -226,9 +226,7 @@ export class Response {
       value = oldValue.concat(value)
     }
 
-    this.set(header, value)
-
-    return this
+    return this.set(header, value)
   }
 
   /**
