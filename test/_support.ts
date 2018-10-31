@@ -6,6 +6,6 @@ export function createHttpServerStub (): any {
   return sinon.createStubInstance(http.Server)
 }
 
-export function noop () {
+export function noop (): any {
   // do nothing
 }

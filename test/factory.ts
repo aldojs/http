@@ -1,10 +1,9 @@
 
 import 'mocha'
-import * as http from 'http'
 import * as https from 'https'
 import * as assert from 'assert'
 import { noop } from './_support'
-import { createServer, Server } from '../../src'
+import { createServer, Server } from '../src'
 
 describe('createServer()', () => {
   it('should be a function', () => {
