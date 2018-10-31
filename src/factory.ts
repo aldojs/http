@@ -1,7 +1,6 @@
 
 import * as http from 'http'
 import * as https from 'https'
-import is from '@sindresorhus/is'
 import { Server, RequestHandler } from './server'
 
 export type CreateServerOptions = {
@@ -41,7 +40,7 @@ export function createServer (handler: RequestHandler): Server
 export function createServer (): Server
 
 export function createServer (options: any = {}, fn?: any) {
-  if (_isRequestHandler(options)) {
+  if (typeof options === 'function') {
     fn = options
     options = {}
   }
@@ -61,14 +60,4 @@ export function createServer (options: any = {}, fn?: any) {
  */
 function _createNativeServer (tls?: https.ServerOptions): http.Server | https.Server {
   return tls ? https.createServer(tls) : http.createServer()
-}
-
-/**
- * Check whether the given argument is a valid request handler
- * 
- * @param arg 
- * @private
- */
-function _isRequestHandler (arg: any): arg is RequestHandler {
-  return is.function_(arg) || is.function_(arg.handle)
 }

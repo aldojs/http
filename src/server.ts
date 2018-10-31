@@ -2,19 +2,18 @@
 import * as net from 'net'
 import * as http from 'http'
 import * as https from 'https'
-import is from '@sindresorhus/is'
-import { createResponse, createErrorResponse } from './response'
+import { EventEmitter } from 'events'
 
-export type RequestHandler = RequestHandlerFn | {
-  handle: RequestHandlerFn
-}
-
-export type RequestHandlerFn = (req: IRequest) => any
+export type RequestHandler = (req: Request) => Response | Promise<Response>
 
 export type EventListener = (...args: any[]) => any
 
-export interface IRequest extends http.IncomingMessage {
+export interface Request extends http.IncomingMessage {
   // 
+}
+
+export interface Response {
+  send (writer: http.ServerResponse): any
 }
 
 /**
@@ -24,9 +23,9 @@ export class Server {
   /**
    * The internal server
    * 
-   * @protected
+   * @private
    */
-  protected _server: http.Server | https.Server
+  private _server: http.Server | https.Server
 
   /**
    * Create a new server instance
@@ -58,7 +57,7 @@ export class Server {
   public on (event: string, listener: EventListener): this
 
   public on (event: string, fn: EventListener) {
-    if (event === 'request') fn = this._wrap(fn)
+    if (event === 'request') fn = _wrap(fn, this._server)
 
     // attach the listener
     this._server.on(event, _defer(fn))
@@ -97,11 +96,8 @@ export class Server {
    * @public
    */
   public off (event?: string, fn?: EventListener): this {
-    if (event == null || fn == null) {
-      this._server.removeAllListeners(event)
-    } else {
-      this._server.removeListener(event, fn)
-    }
+    if (!event || !fn) this._server.removeAllListeners(event)
+    else this._server.removeListener(event, fn)
 
     return this
   }
@@ -110,70 +106,34 @@ export class Server {
    * Start a server listening for requests
    * 
    * @public
+   * @async
    */
   public start (portOrOptions?: number | net.ListenOptions): Promise<void> {
     // attach a default error handler
     if (!this._server.listenerCount('error')) this.on('error', _onError)
 
     return new Promise<void>((resolve, reject) => {
-      // attach the error listener
       this._server.once('error', reject)
 
-      // listening
       this._server.listen(portOrOptions, () => {
         // remove the unecessary error listener
         this._server.removeListener('error', reject)
 
-        // resolve the promise
         resolve()
       })
     })
   }
 
   /**
-   * Stops the server from accepting new requests
+   * Prevent the server from accepting new requests
    * 
    * @public
+   * @async
    */
   public stop (): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this._server.close((e: any) => e ? reject(e) : resolve())
     })
-  }
-
-  /**
-   * Wrap the request handler
-   * 
-   * @param handler The request handler
-   * @protected
-   */
-  protected _wrap (handler: EventListener): EventListener {
-    return async (req: http.IncomingMessage, res: http.ServerResponse) => {
-      try {
-        let output = await _invoke(handler, req)
-
-        let response = createResponse(output)
-
-        await response.send(res)
-      } catch (err) {
-        // normalize
-        if (! (err instanceof Error)) {
-          err = new Error(`Non-error thrown: "${is(err)}"`)
-        }
-
-        // support ENOENT
-        if (err.code === 'ENOENT') {
-          err.expose = true
-          err.status = 404
-        }
-
-        // send
-        createErrorResponse(err).send(res)
-
-        // delegate
-        this.emit('error', err)
-      }
-    }
   }
 }
 
@@ -188,9 +148,7 @@ function _onError (err: any): void {
 
   let msg: string = err.stack || err.toString()
 
-  console.error()
-  console.error(msg.replace(/^/gm, '   '))
-  console.error()
+  console.error(`\n${msg.replace(/^/gm, '   ')}\n`)
 }
 
 /**
@@ -204,12 +162,35 @@ function _defer (fn: EventListener): EventListener {
 }
 
 /**
- * Invoke the request handler and return the output
+ * Wrap the request handler
  * 
- * @param handler 
- * @param request 
+ * @param handler The request handler
  * @private
  */
-function _invoke (handler: RequestHandler, request: IRequest): any {
-  return is.function_(handler) ? handler(request) : handler.handle(request)
+function _wrap (handler: RequestHandler, emitter: EventEmitter): EventListener {
+  return async (req: http.IncomingMessage, res: http.ServerResponse) => {
+    try {
+      let response = await handler(req)
+
+      await response.send(res)
+    } catch (err) {
+      // normalize
+      if (! (err instanceof Error)) {
+        err = new Error(`Non-error thrown: "${typeof err}"`)
+      }
+
+      // support ENOENT
+      if (err.code === 'ENOENT') {
+        err.expose = true
+        err.status = 404
+      }
+
+      // send
+      res.statusCode = err.status || err.statusCode || 500
+      res.end()
+
+      // delegate
+      emitter.emit('error', err)
+    }
+  }
 }
