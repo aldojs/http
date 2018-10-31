@@ -13,7 +13,7 @@ export interface Request extends http.IncomingMessage {
 }
 
 export interface Response {
-  send (writer: http.ServerResponse): any
+  send (res: http.ServerResponse): any
 }
 
 /**
