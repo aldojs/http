@@ -57,10 +57,9 @@ export class Server {
   public on (event: string, listener: EventListener): this
 
   public on (event: string, fn: EventListener) {
-    if (event === 'request') fn = _wrap(fn, this._server)
+    if (event === 'request') fn = _defer(_wrap(fn, this._server))
 
-    // attach the listener
-    this._server.on(event, _defer(fn))
+    this._server.on(event, fn)
 
     return this
   }
@@ -73,7 +72,7 @@ export class Server {
    * @public
    */
   public once (event: string, fn: EventListener): this {
-    this._server.once(event, _defer(fn))
+    this._server.once(event, fn)
     return this
   }
 
@@ -89,14 +88,33 @@ export class Server {
   }
 
   /**
-   * Stop listening to the given `event`
+   * Remove the given event listener
    * 
    * @param event The event name
    * @param fn The event listener
    * @public
    */
-  public off (event?: string, fn?: EventListener): this {
-    if (!event || !fn) this._server.removeAllListeners(event)
+  public off (event: string, fn: EventListener): this
+
+  /**
+   * Stop listening to the given `event`
+   * 
+   * @param event The event name
+   * @public
+   */
+  public off (event: string): this
+
+  /**
+   * Stop listening to all events
+   * 
+   * @public
+   */
+  public off (): this
+
+  public off (event?: any, fn?: EventListener): this {
+    // FIXME: `request` listeners still not removable
+
+    if (!fn) this._server.removeAllListeners(event)
     else this._server.removeListener(event, fn)
 
     return this
@@ -110,14 +128,14 @@ export class Server {
    */
   public start (portOrOptions?: number | net.ListenOptions): Promise<void> {
     // attach a default error handler
-    if (!this._server.listenerCount('error')) this.on('error', _onError)
+    if (! this._server.listenerCount('error')) this.on('error', _onError)
 
     return new Promise<void>((resolve, reject) => {
-      this._server.once('error', reject)
+      this.once('error', reject)
 
       this._server.listen(portOrOptions, () => {
-        // remove the unecessary error listener
-        this._server.removeListener('error', reject)
+        // remove the unecessary listener
+        this.off('error', reject)
 
         resolve()
       })
@@ -144,7 +162,7 @@ export class Server {
  * @private
  */
 function _onError (err: any): void {
-  if (err.status === 404 || err.expose) return
+  if (err.status === 404 || err.statusCode === 404 || err.expose) return
 
   let msg: string = err.stack || err.toString()
 
