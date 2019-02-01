@@ -57,7 +57,14 @@ export class Server {
   public on (event: string, listener: EventListener): this
 
   public on (event: string, fn: EventListener) {
-    if (event === 'request') fn = _defer(_wrap(fn, this._server))
+    if (event === 'request') {
+      let handler: any = _defer(_wrap(fn, this._server))
+
+      // a hack to make the listener removable
+      handler.listener = fn
+
+      fn = handler
+    }
 
     this._server.on(event, fn)
 
@@ -112,8 +119,6 @@ export class Server {
   public off (): this
 
   public off (event?: any, fn?: EventListener): this {
-    // FIXME: `request` listeners still not removable
-
     if (!fn) this._server.removeAllListeners(event)
     else this._server.removeListener(event, fn)
 
