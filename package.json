@@ -1,7 +1,7 @@
 {
   "name": "@aldojs/http",
-  "version": "1.0.1",
-  "description": "Enhanced HTTP `createServer` module for Node.js",
+  "version": "1.0.2",
+  "description": "Enhanced HTTP `Server` for Node.js",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
   "engines": {
@@ -12,9 +12,7 @@
     "lib"
   ],
   "scripts": {
-    "build": "tsc",
-    "prepublishOnly": "tsc && npm test",
-    "test": "mocha -r ts-node/register \"test/**/*.ts\""
+    "test": "mocha test"
   },
   "repository": {
     "type": "git",
@@ -33,13 +31,11 @@
     "url": "https://github.com/aldojs/http/issues"
   },
   "homepage": "https://github.com/aldojs/http#readme",
+  "dependencies": {
+    "@types/node": "^8.10.36"
+  },
   "devDependencies": {
-    "@types/mocha": "^2.2.48",
-    "@types/node": "^8.10.36",
-    "@types/sinon": "^4.3.3",
     "mocha": "^5.2.0",
-    "sinon": "^4.5.0",
-    "ts-node": "^4.1.0",
-    "typescript": "^3.1.4"
+    "sinon": "^4.5.0"
   }
 }
