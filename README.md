@@ -1,7 +1,7 @@
 
 An enhanced HTTP(S) [Server](#server) for Node.js.
 It uses a pure [`request handler`](#request-handler) instead of the traditional
-`(request: http.IncomingMessage, response: http.ServerResponse) => void`
+Nodejs [request handler](https://nodejs.org/docs/latest-v8.x/api/http.html#http_event_request)
 
 ## Install
 
@@ -34,6 +34,10 @@ declare interface Options {
 ## Request handler
 
 The `request` event handler could be a common or an async function.
+It's a pure function to replace the traditional handler
+```ts
+declare type RequestHandler = (request: http.IncomingMessage, response: http.ServerResponse) => void;
+```
 
 Each handler will receive the [http.IncomingMessage](https://nodejs.org/docs/latest-v8.x/api/http.html#http_class_http_incomingmessage) object as a request, and should return a [Response](#response) object.
 
@@ -43,7 +47,7 @@ declare type RequestHandler = (request: http.IncomingMessage) => Response | Prom
 
 ## Response
 
-The response object returned by the [request handler](#request-handler) should have a `send` method to configure and finalize the [http.ServerResponse](https://nodejs.org/docs/latest-v8.x/api/http.html#http_class_http_serverresponse)
+The returned response object should have a `send` method to configure and finalize the [http.ServerResponse](https://nodejs.org/docs/latest-v8.x/api/http.html#http_class_http_serverresponse)
 
 ```ts
 import { ServerResponse } from 'http';
