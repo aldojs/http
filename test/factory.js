@@ -1,9 +1,9 @@
 
-import 'mocha'
-import * as https from 'https'
-import * as assert from 'assert'
-import { noop } from './_support'
-import { createServer, Server } from '../src'
+const https = require('https')
+const assert = require('assert')
+const { noop } = require('./_support')
+const { createServer, Server } = require('../src')
+
 
 describe('createServer()', () => {
   it('should be a function', () => {
@@ -15,16 +15,16 @@ describe('createServer()', () => {
   })
 
   it('should set the listener', () => {
-    let server = createServer(noop) as any
+    let server = createServer(noop)
 
-    assert.equal(server._server.listenerCount('request'), 1)
+    assert.equal(server._emitter.listenerCount('request'), 1)
   })
 
   describe('when `tls` options are provided', () => {
     it('should create a HTTPS server', () => {
-      var server = createServer({ tls: {} }) as any
+      var server = createServer({ tls: {} })
 
-      assert(server._server instanceof https.Server)
+      assert(server._emitter instanceof https.Server)
     })
   })
 })

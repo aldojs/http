@@ -1,12 +1,12 @@
 
-import 'mocha'
-import { Server } from '../src'
-import * as assert from 'assert'
-import { createHttpServerStub } from './_support'
+const assert = require('assert')
+const { Server } = require('../src')
+const { createHttpServerStub } = require('./_support')
+
 
 describe('server.start(argument)', () => {
-  var stub: any
-  var server: Server
+  var stub
+  var server
 
   beforeEach(() => {
     stub = createHttpServerStub()

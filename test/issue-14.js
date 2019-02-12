@@ -1,21 +1,14 @@
 
-import 'mocha'
-import { Server } from '../src'
-import * as assert from 'assert'
-import { EventEmitter } from 'events'
+const assert = require('assert')
+const { Server } = require('../src')
+const { noop } = require('./_support')
+const { EventEmitter } = require('events')
 
-function createServer (ee = new EventEmitter()) {
-  return new Server(ee as any)
-}
-
-function noop () {
-  // 
-}
 
 describe('issue #14', () => {
   it('should remove the listener', () => {
     let ee = new EventEmitter()
-    let server = createServer(ee)
+    let server = new Server(ee)
 
     server.on('foo', noop).off('foo', noop)
 
@@ -24,7 +17,7 @@ describe('issue #14', () => {
 
   it('should remove the `request` listener', () => {
     let ee = new EventEmitter()
-    let server = createServer(ee)
+    let server = new Server(ee)
 
     server.on('request', noop).off('request', noop)
 
