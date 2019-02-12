@@ -1,7 +1,7 @@
 
 const http = require('http')
 const sinon = require('sinon')
-const { Server } = require('../src')
+const { Server } = require('../lib')
 const { EventEmitter } = require('events')
 
 

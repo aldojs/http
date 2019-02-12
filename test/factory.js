@@ -2,7 +2,7 @@
 const https = require('https')
 const assert = require('assert')
 const { noop } = require('./_support')
-const { createServer, Server } = require('../src')
+const { createServer, Server } = require('../lib')
 
 
 describe('createServer()', () => {

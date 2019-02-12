@@ -1,6 +1,6 @@
 
 const assert = require('assert')
-const { Server } = require('../src')
+const { Server } = require('../lib')
 const { createHttpServerStub } = require('./_support')
 
 
