@@ -1,5 +1,7 @@
 
-An enhanced HTTP(S) [createServer](#create-a-server) module for Node.js.
+An enhanced HTTP(S) [Server](#server) for Node.js.
+It uses a pure [`request handler`](#request-handler) instead of the traditional
+`(request: http.IncomingMessage, response: http.ServerResponse) => void`
 
 ## Install
 
@@ -7,12 +9,12 @@ An enhanced HTTP(S) [createServer](#create-a-server) module for Node.js.
 $ npm add @aldojs/http
 ```
 
-## create a server
+## Server
 
 To create HTTP or HTTPS servers, you may use the function `createServer`.
 
 ```ts
-import { ServerOptions } from 'https';
+const { readFileSync } = require('fs');
 
 declare function createServer (options: Options, fn: RequestHandler): Server;
 declare function createServer (fn: RequestHandler): Server;
@@ -20,30 +22,16 @@ declare function createServer (options: Options): Server;
 declare function createServer (): Server;
 
 declare interface Options {
-  tls?: ServerOptions;
-}
-```
-
-### Server options
-
-```js
-const { readFileSync } = require('fs')
-const { createServer } = require('@aldojs/http')
-
-const options = {
-  tls: {
+  tls?: {
     key: readFileSync('path/to/key/file.pem'),
     cert: readFileSync('path/to/cert/file.pem')
-    
-    // see `https.createServer()` for more options
+
+    // see `https.createServer()` for more options to create secure servers
   }
 }
-
-// will make a HTTPS server using the TLS options
-const secureServer = createServer(options)
 ```
 
-### Request handler
+## Request handler
 
 The `request` event handler could be a common or an async function.
 
@@ -55,15 +43,12 @@ declare type RequestHandler = (request: http.IncomingMessage) => Response | Prom
 
 ## Response
 
-The response object returned by the [request handler](#request-handler) should be as following:
+The response object returned by the [request handler](#request-handler) should have a `send` method to configure and finalize the [http.ServerResponse](https://nodejs.org/docs/latest-v8.x/api/http.html#http_class_http_serverresponse)
 
 ```ts
 import { ServerResponse } from 'http';
 
-declare class Response {
-  send (res: ServerResponse): any;
+declare interface Response {
+  send (res: ServerResponse): void | Promise<void>;
 }
 ```
-
-You may return, any object with `send` method, to configure and finalize the [http.ServerResponse](https://nodejs.org/docs/latest-v8.x/api/http.html#http_class_http_serverresponse)
-
