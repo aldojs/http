@@ -1,6 +1,6 @@
 {
   "name": "@aldojs/http",
-  "version": "1.0.2",
+  "version": "1.1.1",
   "description": "Enhanced HTTP `Server` for Node.js",
   "types": "lib/index.d.ts",
   "main": "lib/index.js",
